@@ -2,6 +2,7 @@
 FastAPI==0.95.1
 uvicorn==0.21.1
 pydantic[dotenv]  # Same version that the included in FastAPI
+pydantic[email]
 
 # Database
 alembic==1.10.3

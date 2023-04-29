@@ -7,21 +7,15 @@ from sqlalchemy.orm import sessionmaker
 
 
 class DatabaseConnection():
-    def __init__(self, host: str, username: str, password: str, database: str,
-                 engine: Engine = None, session: Session = None) -> None:
-        self.host: str = host
-        self.username: str = username
-        self.password: str = password
-        self.database: str = database
-        self._engine: Engine = engine
-        self._session: Session = session
+    def __init__(self, str_conn: str) -> None:
+        self.str_conn: str = str_conn
+        self._engine: Engine = None
+        self._session: Session = None
 
     @property
     def engine(self) -> Engine:
         if self._engine is None:
-            self._engine = create_engine(
-                f'postgresql://{self.username}:{self.password}@{self.host}/{self.database}'
-            )
+            self._engine = create_engine(self.str_conn)
         return self._engine
 
     @property
@@ -31,14 +25,16 @@ class DatabaseConnection():
             self._session = Session()
         return self._session
 
-    def connect(self) -> None:
+    def connect(self) -> bool:
         try:
             self.engine  # Inicializa el engine si es None
             self.session  # Inicializa la sesión si es None
             self.session.connection()
             print('\033[32m', 'Connected to PostgreSQL database', '\033[0m')
+            return True
         except Exception as error:
             print(f'Failed to connect to PostgreSQL database: {error}')
+            return False
 
     def disconnect(self) -> None:
         if self.session:

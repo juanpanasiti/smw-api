@@ -15,5 +15,9 @@ class Settings(BaseSettings):
     DB_PASS: str = ''
     DB_NAME: str = ''
 
+    STR_CONN_DB: str = ''
+
+    STR_CONN_DB_TEST: str = ''
+
     class Config:
         env_file = '.env'

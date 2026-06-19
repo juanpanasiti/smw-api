@@ -17,6 +17,7 @@ async def test_get_db_session() -> None:
     with contextlib.suppress(StopAsyncIteration):
         await anext(generator)
 
+
 @pytest.mark.asyncio
 async def test_get_redis_client() -> None:
     generator = get_redis_client()

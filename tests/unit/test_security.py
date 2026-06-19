@@ -9,6 +9,7 @@ def test_password_hashing():
     assert verify_password(password, hashed) is True
     assert verify_password("wrongpassword", hashed) is False
 
+
 def test_create_tokens():
     subject = "user123"
     access_token = create_access_token(subject)

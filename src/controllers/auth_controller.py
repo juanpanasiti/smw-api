@@ -7,6 +7,7 @@ from src.services.auth_service import AuthService
 
 logger = structlog.get_logger()
 
+
 class AuthController:
     def __init__(self, auth_service: AuthService):
         self.auth_service = auth_service
@@ -15,10 +16,7 @@ class AuthController:
         try:
             user = await self.auth_service.register_user(schema)
             logger.info("user_registered", email=user.email, user_id=str(user.id))
-            return StandardResponse(
-                success=True,
-                data=UserResponseSchema.model_validate(user)
-            )
+            return StandardResponse(success=True, data=UserResponseSchema.model_validate(user))
         except ValueError as e:
             if str(e) == "EMAIL_ALREADY_REGISTERED":
                 return StandardResponse(
@@ -26,7 +24,7 @@ class AuthController:
                     error=ErrorDetail(
                         code="EMAIL_ALREADY_REGISTERED",
                         message="The provided email is already in use.",
-                    )
+                    ),
                 )
             raise
 
@@ -34,10 +32,7 @@ class AuthController:
         try:
             token = await self.auth_service.login_user(schema)
             logger.info("user_logged_in", email=schema.email)
-            return StandardResponse(
-                success=True,
-                data=token
-            )
+            return StandardResponse(success=True, data=token)
         except ValueError as e:
             if str(e) == "INVALID_CREDENTIALS":
                 return StandardResponse(
@@ -45,6 +40,6 @@ class AuthController:
                     error=ErrorDetail(
                         code="INVALID_CREDENTIALS",
                         message="Incorrect email or password.",
-                    )
+                    ),
                 )
             raise

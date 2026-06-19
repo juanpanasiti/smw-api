@@ -21,8 +21,10 @@ AsyncSessionLocal = async_sessionmaker(
     autocommit=False,
 )
 
+
 class Base(DeclarativeBase):
     pass
+
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:

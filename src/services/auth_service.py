@@ -17,17 +17,13 @@ class AuthService:
 
         hashed_password = get_password_hash(schema.password)
 
-        user = User(
-            email=schema.email,
-            password_hash=hashed_password,
-            role="user"
-        )
+        user = User(email=schema.email, password_hash=hashed_password, role="user")
 
         profile = Profile(
             first_name=schema.profile.first_name,
             last_name=schema.profile.last_name,
             birthdate=schema.profile.birthdate,
-            monthly_spending_limit=schema.profile.monthly_spending_limit
+            monthly_spending_limit=schema.profile.monthly_spending_limit,
         )
 
         user.profile = profile

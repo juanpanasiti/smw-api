@@ -5,14 +5,11 @@ from src.api.middleware import IdempotencyMiddleware
 from src.core.config import settings
 from src.core.logger import setup_logging
 from src.routes.auth_routes import router as auth_router
+from src.routes.category_routes import router as category_router
 
 setup_logging()
 
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.VERSION,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
-)
+app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION, openapi_url=f"{settings.API_V1_STR}/openapi.json")
 
 # CORS Middleware
 app.add_middleware(
@@ -28,6 +25,8 @@ app.add_middleware(IdempotencyMiddleware)
 
 # Routers
 app.include_router(auth_router, prefix=settings.API_V1_STR)
+app.include_router(category_router, prefix=settings.API_V1_STR)
+
 
 @app.get("/health", tags=["health"])
 async def health_check():

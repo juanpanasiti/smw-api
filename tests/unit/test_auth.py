@@ -15,9 +15,11 @@ from src.services.auth_service import AuthService
 def mock_user_repo():
     return AsyncMock()
 
+
 @pytest.fixture
 def auth_service(mock_user_repo):
     return AuthService(mock_user_repo)
+
 
 @pytest.mark.asyncio
 async def test_register_user_success(auth_service, mock_user_repo):
@@ -28,17 +30,15 @@ async def test_register_user_success(auth_service, mock_user_repo):
         email="test@example.com",
         password="strongpassword",
         profile=ProfileCreateSchema(
-            first_name="John",
-            last_name="Doe",
-            birthdate=date(1990, 1, 1),
-            monthly_spending_limit=Decimal("1000.00")
-        )
+            first_name="John", last_name="Doe", birthdate=date(1990, 1, 1), monthly_spending_limit=Decimal("1000.00")
+        ),
     )
 
     user = await auth_service.register_user(schema)
     assert user.email == schema.email
     assert user.profile.first_name == "John"
     mock_user_repo.create.assert_called_once()
+
 
 @pytest.mark.asyncio
 async def test_register_user_existing_email(auth_service, mock_user_repo):
@@ -48,15 +48,13 @@ async def test_register_user_existing_email(auth_service, mock_user_repo):
         email="test@example.com",
         password="strongpassword",
         profile=ProfileCreateSchema(
-            first_name="John",
-            last_name="Doe",
-            birthdate=date(1990, 1, 1),
-            monthly_spending_limit=Decimal("1000.00")
-        )
+            first_name="John", last_name="Doe", birthdate=date(1990, 1, 1), monthly_spending_limit=Decimal("1000.00")
+        ),
     )
 
     with pytest.raises(ValueError, match="EMAIL_ALREADY_REGISTERED"):
         await auth_service.register_user(schema)
+
 
 @pytest.mark.asyncio
 async def test_login_user_success(auth_service, mock_user_repo):
@@ -69,6 +67,7 @@ async def test_login_user_success(auth_service, mock_user_repo):
 
     assert token.access_token is not None
     assert token.refresh_token is not None
+
 
 @pytest.mark.asyncio
 async def test_login_user_invalid_password(auth_service, mock_user_repo):

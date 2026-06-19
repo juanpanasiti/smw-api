@@ -4,10 +4,12 @@ from pydantic import BaseModel
 
 T = TypeVar("T")
 
+
 class ErrorDetail(BaseModel):
     code: str
     message: str
     details: dict[str, Any] = {}
+
 
 class StandardResponse(BaseModel, Generic[T]):
     success: bool

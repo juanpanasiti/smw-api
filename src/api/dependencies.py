@@ -1,14 +1,22 @@
+import uuid
 from typing import Annotated
 
 import redis.asyncio as aioredis
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.controllers.auth_controller import AuthController
+from src.controllers.category_controller import MovementCategoryController
+from src.core.config import settings
 from src.core.database import get_db_session
 from src.core.redis import get_redis_client
+from src.core.security import ALGORITHM, SECRET_KEY
+from src.repositories.category_repository import MovementCategoryRepository
 from src.repositories.user_repository import UserRepository
 from src.services.auth_service import AuthService
+from src.services.category_service import MovementCategoryService
 
 # Dependencia para obtener la sesión de BD
 DbSession = Annotated[AsyncSession, Depends(get_db_session)]
@@ -16,14 +24,50 @@ DbSession = Annotated[AsyncSession, Depends(get_db_session)]
 # Dependencia para obtener el cliente de Redis
 RedisClient = Annotated[aioredis.Redis, Depends(get_redis_client)]
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
 
 
+def get_current_user_id(token: Annotated[str, Depends(oauth2_scheme)]) -> uuid.UUID:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+        return uuid.UUID(user_id)
+    except JWTError as e:
+        raise credentials_exception from e
 
+
+# Auth
 def get_user_repository(session: DbSession) -> UserRepository:
     return UserRepository(session)
+
 
 def get_auth_service(repo: Annotated[UserRepository, Depends(get_user_repository)]) -> AuthService:
     return AuthService(repo)
 
+
 def get_auth_controller(service: Annotated[AuthService, Depends(get_auth_service)]) -> AuthController:
     return AuthController(service)
+
+
+# Categories
+def get_category_repository(session: DbSession) -> MovementCategoryRepository:
+    return MovementCategoryRepository(session)
+
+
+def get_category_service(
+    repo: Annotated[MovementCategoryRepository, Depends(get_category_repository)],
+) -> MovementCategoryService:
+    return MovementCategoryService(repo)
+
+
+def get_category_controller(
+    service: Annotated[MovementCategoryService, Depends(get_category_service)],
+) -> MovementCategoryController:
+    return MovementCategoryController(service)

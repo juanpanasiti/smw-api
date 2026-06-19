@@ -9,6 +9,7 @@ from src.core.redis import redis_client
 
 logger = structlog.get_logger()
 
+
 class IdempotencyMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         if request.method not in ["POST", "PUT", "PATCH", "DELETE"]:
@@ -30,9 +31,9 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                         "error": {
                             "code": "MISSING_IDEMPOTENCY_KEY",
                             "message": "Idempotency-Key header is required for mutating requests.",
-                            "details": {}
-                        }
-                    }
+                            "details": {},
+                        },
+                    },
                 )
             else:
                 return await call_next(request)
@@ -46,10 +47,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         if cached_response:
             logger.info("idempotency_cache_hit", idempotency_key=idempotency_key)
             data = json.loads(cached_response)
-            return JSONResponse(
-                status_code=data.get("status_code", 200),
-                content=data.get("content", {})
-            )
+            return JSONResponse(status_code=data.get("status_code", 200), content=data.get("content", {}))
 
         # Process the request
         response = await call_next(request)
@@ -65,9 +63,15 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         # use a route-level dependency in the future for exact payload caching.
         # We'll just set the key to prevent immediate double-clicks (5 seconds lock).
 
-        await redis_client.setex(cache_key, 5, json.dumps({
-            "status_code": response.status_code,
-            "content": {"message": "Request processed. (Cached response body placeholder)"}
-        }))
+        await redis_client.setex(
+            cache_key,
+            5,
+            json.dumps(
+                {
+                    "status_code": response.status_code,
+                    "content": {"message": "Request processed. (Cached response body placeholder)"},
+                }
+            ),
+        )
 
         return response

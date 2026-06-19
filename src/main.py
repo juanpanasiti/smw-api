@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.api.middleware import IdempotencyMiddleware
 from src.core.config import settings
 from src.core.logger import setup_logging
+from src.routes.account_routes import router as account_router
 from src.routes.auth_routes import router as auth_router
 from src.routes.category_routes import router as category_router
 
@@ -26,6 +27,7 @@ app.add_middleware(IdempotencyMiddleware)
 # Routers
 app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(category_router, prefix=settings.API_V1_STR)
+app.include_router(account_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/health", tags=["health"])

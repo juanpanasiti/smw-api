@@ -7,14 +7,17 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.controllers.account_controller import AccountController
 from src.controllers.auth_controller import AuthController
 from src.controllers.category_controller import MovementCategoryController
 from src.core.config import settings
 from src.core.database import get_db_session
 from src.core.redis import get_redis_client
 from src.core.security import ALGORITHM, SECRET_KEY
+from src.repositories.account_repository import AccountRepository
 from src.repositories.category_repository import MovementCategoryRepository
 from src.repositories.user_repository import UserRepository
+from src.services.account_service import AccountService
 from src.services.auth_service import AuthService
 from src.services.category_service import MovementCategoryService
 
@@ -71,3 +74,20 @@ def get_category_controller(
     service: Annotated[MovementCategoryService, Depends(get_category_service)],
 ) -> MovementCategoryController:
     return MovementCategoryController(service)
+
+
+# Accounts
+def get_account_repository(session: DbSession) -> AccountRepository:
+    return AccountRepository(session)
+
+
+def get_account_service(
+    repo: Annotated[AccountRepository, Depends(get_account_repository)],
+) -> AccountService:
+    return AccountService(repo)
+
+
+def get_account_controller(
+    service: Annotated[AccountService, Depends(get_account_service)],
+) -> AccountController:
+    return AccountController(service)

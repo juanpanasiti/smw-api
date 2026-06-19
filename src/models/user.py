@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.database import Base
 
 if TYPE_CHECKING:
+    from src.models.account import Account
     from src.models.category import MovementCategory
     from src.models.profile import Profile
 
@@ -35,3 +36,4 @@ class User(Base):
     categories: Mapped[list["MovementCategory"]] = relationship(
         "MovementCategory", back_populates="user", cascade="all, delete-orphan"
     )
+    accounts: Mapped[list["Account"]] = relationship("Account", back_populates="owner", cascade="all, delete-orphan")

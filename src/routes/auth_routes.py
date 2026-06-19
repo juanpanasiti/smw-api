@@ -25,20 +25,13 @@ async def register(
     return response
 
 
-@router.post(
-    "/login",
-    status_code=status.HTTP_200_OK,
-    response_model=Token
-)
+@router.post("/login", status_code=status.HTTP_200_OK, response_model=Token)
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    controller: Annotated[AuthController, Depends(get_auth_controller)]
+    controller: Annotated[AuthController, Depends(get_auth_controller)],
 ):
     schema = UserLoginSchema(email=form_data.username, password=form_data.password)
     response = await controller.login(schema)
     if not response.success:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=response.model_dump()
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=response.model_dump())
     return response.data

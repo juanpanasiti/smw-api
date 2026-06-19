@@ -1,127 +1,56 @@
-# Personal Finance & Projection API
+# Personal Finance API
 
-Production-oriented asynchronous REST API for personal finance management, payment orchestration, and multi-period projections.
+A high-performance RESTful API for personal finance management and projection, engineered for scalability, financial data consistency, and advanced observability.
 
-## Project Status
+## 🚀 Architecture
 
-Current maturity: Planning + Governance Baseline completed.
+The application strictly enforces a decoupling pattern across 5 distinct layers:
 
-This repository currently contains architecture and project governance foundations. Implementation starts in atomic feature slices and is promoted through `dev -> uat -> main`.
+```mermaid
+graph TD
+    Client[Web / Mobile Client] -->|HTTP Request| Route[Route / Endpoint]
+    Route --> Controller[Controller]
+    Controller --> Service[Business Service]
+    Service --> Repository[Repository]
+    Repository --> Model[SQLAlchemy Model]
+    Model --> DB[(PostgreSQL)]
+    
+    Controller -.->|Idempotency / Cache| Redis[(Redis)]
+```
 
-## Core Objectives
+### Core Stack
+- **Python 3.11+**
+- **FastAPI**
+- **SQLAlchemy (Async) + Alembic**
+- **PostgreSQL**
+- **Redis**
+- **uv** package manager
 
-- Deliver a high-performance async API with strict financial precision.
-- Enforce owner-level data isolation in every query path.
-- Guarantee safe concurrent updates with optimistic locking.
-- Use Redis for idempotency and projection cache acceleration.
-- Provide production-grade observability, tests, and CI/CD.
+## 🛠️ Local Development
 
-## Core Stack
-
+### 1. Requirements
 - Python 3.11+
-- FastAPI
-- SQLAlchemy 2.0 Async + Alembic
-- PostgreSQL
-- Redis
-- uv
-- structlog
-- pydantic-settings
-- pytest + pytest-asyncio + httpx
-- Docker + Docker Compose
-- GitHub Actions
+- `uv` (Package Manager)
+- Docker & Docker Compose
 
-## Layered Architecture
+### 2. Setup
+Clone the repository and spin up the infrastructure:
 
-```mermaid
-flowchart LR
-    A[HTTP Request] --> B[Routes Functions]
-    B --> C[Controller Class]
-    C --> D[Service Class]
-    D --> E[Repository Class]
-    E --> F[SQLAlchemy Models]
+```bash
+docker-compose up -d
 ```
 
-## Domain Model Scope
+Install dependencies and start the local environment:
 
-- Auth and security with access/refresh token flow.
-- Accounts with polymorphic persistence (`accounts`, `credit_cards`).
-- Expenses with STI and payment lifecycle management.
-- Bill services and monthly bill issue tracking.
-- Projection engine for X-month simulation.
-
-## API Versioning
-
-All routes are mandatory under:
-
-- `/api/v1`
-
-## Branching and Delivery Strategy
-
-```mermaid
-flowchart LR
-    DEV[dev] --> UAT[uat]
-    UAT --> MAIN[main]
+```bash
+uv sync
+uv run uvicorn src.main:app --reload
 ```
 
-- `dev`: active development and feature integration.
-- `uat`: acceptance and staging validation.
-- `main`: stable production line.
+## 🧪 Testing
 
-## Commit and Review Rules
+The test suite runs against a dedicated testing database `postgres_test` ensuring complete isolation.
 
-- Commit format: Conventional Commits.
-- Every feature is implemented as an atomic slice.
-- Every atomic slice must include:
-  - complete feature code,
-  - unit tests,
-  - documentation updates when applicable.
-- The next slice cannot start until the current one is approved and committed.
-
-## Testing Strategy
-
-- Unit tests are required per feature slice.
-- Integration tests are concentrated in a final dedicated stage.
-- Integration tests are also executable in `dev` via manual or label trigger.
-- Coverage baseline:
-  - minimum threshold: `80%`,
-  - explicit exclusions configured through a coverage configuration file.
-
-## High-Level Roadmap (Atomic Features)
-
-1. Governance baseline and project standards.
-2. Bootstrap with uv and Python toolchain.
-3. 5-layer application skeleton and API v1 wiring.
-4. Strict environment settings and fail-fast startup.
-5. Structured logging and uniform error contract.
-6. Async database and migration foundation.
-7. Auth and security core.
-8. Owner isolation enforcement.
-9. Users, profiles, and categories feature.
-10. Accounts and credit cards feature.
-11. Expenses, payments, and optimistic locking feature.
-12. Bills master-detail feature.
-13. Projection engine feature.
-14. Redis idempotency feature.
-15. Projection cache + invalidation feature.
-16. Background tasks feature.
-17. Full integration test stage.
-18. Containerization and CI/CD pipelines.
-19. Documentation finalization.
-
-## Progress Tracking
-
-Task tracking with subtasks and status lives in:
-
-- `tasks.md`
-
-## Manual Validation Model Per Feature
-
-Every implemented feature slice is delivered with:
-
-1. Summary of what changed.
-2. Manual validation checklist with concrete commands and expected behavior.
-3. Approval gate before commit and before moving to the next slice.
-
-## License
-
-TBD.
+```bash
+uv run pytest
+```

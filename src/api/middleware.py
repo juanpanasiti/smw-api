@@ -14,6 +14,10 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         if request.method not in ["POST", "PUT", "PATCH", "DELETE"]:
             return await call_next(request)
 
+        # Exclude login route from idempotency requirement
+        if request.url.path.endswith("/auth/login"):
+            return await call_next(request)
+
         idempotency_key = request.headers.get("Idempotency-Key")
         if not idempotency_key:
             if request.method == "POST":

@@ -10,16 +10,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.controllers.account_controller import AccountController
 from src.controllers.auth_controller import AuthController
 from src.controllers.category_controller import MovementCategoryController
+from src.controllers.expense_controller import ExpenseController
 from src.core.config import settings
 from src.core.database import get_db_session
 from src.core.redis import get_redis_client
 from src.core.security import ALGORITHM, SECRET_KEY
 from src.repositories.account_repository import AccountRepository
 from src.repositories.category_repository import MovementCategoryRepository
+from src.repositories.expense_repository import ExpenseRepository
 from src.repositories.user_repository import UserRepository
 from src.services.account_service import AccountService
 from src.services.auth_service import AuthService
 from src.services.category_service import MovementCategoryService
+from src.services.expense_service import ExpenseService
 
 # Dependencia para obtener la sesión de BD
 DbSession = Annotated[AsyncSession, Depends(get_db_session)]
@@ -91,3 +94,20 @@ def get_account_controller(
     service: Annotated[AccountService, Depends(get_account_service)],
 ) -> AccountController:
     return AccountController(service)
+
+
+# Expenses
+async def get_expense_repository(session: DbSession) -> ExpenseRepository:
+    return ExpenseRepository(session=session)
+
+
+async def get_expense_service(
+    expense_repository: Annotated[ExpenseRepository, Depends(get_expense_repository)],
+) -> ExpenseService:
+    return ExpenseService(expense_repository=expense_repository)
+
+
+async def get_expense_controller(
+    expense_service: Annotated[ExpenseService, Depends(get_expense_service)],
+) -> ExpenseController:
+    return ExpenseController(expense_service=expense_service)

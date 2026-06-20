@@ -45,6 +45,7 @@ dependencies = [
     "bcrypt==4.0.1",
     "python-multipart==0.0.32",
     "pytz==2026.2",
+    "python-dateutil>=2.9.0.post0",
 ]
 
 [project.optional-dependencies]

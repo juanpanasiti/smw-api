@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.database import Base
 
 if TYPE_CHECKING:
+    from src.models.expense import Expense
     from src.models.user import User
 
 
@@ -31,4 +32,5 @@ class MovementCategory(Base):
     )
 
     # Relationships
-    user: Mapped["User"] = relationship("User", back_populates="categories")
+    user: Mapped["User | None"] = relationship("User", back_populates="categories")
+    expenses: Mapped[list["Expense"]] = relationship("Expense", back_populates="category")

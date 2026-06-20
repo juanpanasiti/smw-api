@@ -11,9 +11,11 @@ from src.schemas.response import StandardResponse
 
 router = APIRouter(prefix="/projections", tags=["projections"])
 
+
 def _get_current_period() -> str:
     today = date.today()
     return f"{today.year}-{today.month:02d}"
+
 
 @router.get(
     "/periods",
@@ -24,7 +26,11 @@ async def get_multiple_projections(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[ProjectionController, Depends(get_projection_controller)],
     limit: int = Query(12, ge=1, le=60, description="Número de periodos a devolver"),
-    start_period: str = Query(default_factory=_get_current_period, pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])$", description="Período inicial YYYY-MM"),
+    start_period: str = Query(
+        default_factory=_get_current_period,
+        pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])$",
+        description="Período inicial YYYY-MM",
+    ),
 ):
     return await controller.get_multiple_projections(user_id, start_period, limit)
 

@@ -28,10 +28,10 @@ class ProjectionController:
         # We store the dict representation of the model.
         # model_dump(mode='json') automatically converts Decimals to floats/strings so it's JSON serializable
         projection_dict = projection.model_dump(mode="json")
-        await redis_client.setex(
+        await redis_client.set(
             cache_key,
-            3600,  # 1 hour TTL
-            json.dumps(projection_dict)
+            json.dumps(projection_dict),
+            ex=3600,  # 1 hour TTL
         )
 
         return StandardResponse(success=True, data=projection)
@@ -41,7 +41,7 @@ class ProjectionController:
     ) -> StandardResponse[list[PeriodProjectionSchema]]:
         periods = []
         current_period = start_period
-        
+
         # Compute the list of periods
         for _ in range(limit):
             periods.append(current_period)
@@ -51,12 +51,12 @@ class ProjectionController:
                 month = 1
                 year += 1
             current_period = f"{year}-{month:02d}"
-        
+
         # Fetch all projections for these periods
         # We can use get_period_projection for each to utilize the cache
         projections = []
         for period in periods:
             res = await self.get_period_projection(user_id, period)
             projections.append(res.data)
-            
+
         return StandardResponse(success=True, data=projections)

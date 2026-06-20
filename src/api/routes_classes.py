@@ -48,10 +48,10 @@ class IdempotentRoute(APIRoute):
             if 200 <= response.status_code < 300 and hasattr(response, "body"):
                 try:
                     content = json.loads(response.body)
-                    await redis_client.setex(
+                    await redis_client.set(
                         cache_key,
-                        5,  # 5 seconds sliding window
                         json.dumps({"status_code": response.status_code, "content": content}),
+                        ex=5,  # 5 seconds sliding window
                     )
                 except json.JSONDecodeError:
                     pass  # If it's not JSON, we don't cache it for idempotency in this implementation

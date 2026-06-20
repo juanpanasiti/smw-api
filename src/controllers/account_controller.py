@@ -53,7 +53,6 @@ class AccountController:
         except ValueError as e:
             return _make_error_response(str(e))
 
-
     async def update_credit_card(
         self,
         owner_id: uuid.UUID,

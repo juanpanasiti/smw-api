@@ -4,7 +4,6 @@ from src.core.redis import invalidate_user_projections
 from src.models.expense import Purchase, Subscription
 from src.schemas.expense import (
     ExpenseListItemSchema,
-    ExpenseResponseSchema,
     PaymentResponseSchema,
     PaymentUpdateSchema,
     PurchaseCreateSchema,
@@ -34,17 +33,17 @@ class ExpenseController:
 
     async def create_purchase(
         self, user_id: uuid.UUID, data: PurchaseCreateSchema
-    ) -> StandardResponse[ExpenseResponseSchema]:
+    ) -> StandardResponse[PurchaseResponseSchema]:
         expense = await self.expense_service.create_purchase(user_id, data)
         await invalidate_user_projections(user_id)
-        return StandardResponse(success=True, data=ExpenseResponseSchema.model_validate(expense))
+        return StandardResponse(success=True, data=PurchaseResponseSchema.model_validate(expense))
 
     async def create_subscription(
         self, user_id: uuid.UUID, data: SubscriptionCreateSchema
-    ) -> StandardResponse[ExpenseResponseSchema]:
+    ) -> StandardResponse[SubscriptionResponseSchema]:
         expense = await self.expense_service.create_subscription(user_id, data)
         await invalidate_user_projections(user_id)
-        return StandardResponse(success=True, data=ExpenseResponseSchema.model_validate(expense))
+        return StandardResponse(success=True, data=SubscriptionResponseSchema.model_validate(expense))
 
     async def update_payment_status(
         self, user_id: uuid.UUID, payment_id: uuid.UUID, data: PaymentUpdateSchema

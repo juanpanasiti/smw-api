@@ -24,6 +24,7 @@
 - [Testing](#testing)
 - [Docker](#docker)
 - [Project Structure](#project-structure)
+- [API Reference](./API_REFERENCE.md)
 
 ---
 
@@ -201,6 +202,8 @@ FastAPI generates interactive documentation automatically. Once the server is ru
 | **Swagger UI** (interactive) | http://localhost:8000/docs |
 | **ReDoc** (reference) | http://localhost:8000/redoc |
 | **OpenAPI JSON** | http://localhost:8000/openapi.json |
+
+> 📄 For the full endpoint reference including request/response schemas, field constraints, error codes, and examples, see **[API_REFERENCE.md](./API_REFERENCE.md)**.
 
 ### Authentication
 

@@ -1,18 +1,35 @@
-# Stage 1: Build virtual environment using uv
-FROM ghcr.io/astral-sh/uv:python3.11-slim AS builder
+# ── Stage 1: Build virtual environment using uv ──────────────────────────────
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 WORKDIR /app
+
 COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project --no-dev
 
-# Stage 2: Runtime Minimal Image
-FROM python:3.11-slim AS runtime
+# ── Stage 2: Runtime Minimal Image ───────────────────────────────────────────
+FROM python:3.12-slim-bookworm AS runtime
 WORKDIR /app
+
 COPY --from=builder /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
-COPY src/ /app/src
-RUN useradd -u 8888 appuser && chown -R appuser:appuser /app
+
+# Application source code
+COPY src/ /app/src/
+
+# Alembic migrations
+COPY alembic.ini /app/alembic.ini
+COPY migrations/ /app/migrations/
+
+# Entrypoint script
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+
+# Non-root user
+RUN useradd -u 8888 appuser \
+    && chmod +x /app/docker-entrypoint.sh \
+    && chown -R appuser:appuser /app
+
 USER appuser
 EXPOSE 8000
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

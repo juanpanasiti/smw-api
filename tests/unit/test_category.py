@@ -20,6 +20,11 @@ def category_service(mock_category_repo):
 
 @pytest.mark.asyncio
 async def test_get_user_categories(category_service, mock_category_repo):
+    """
+    Test retrieving all categories relevant to a user (both global and user-owned).
+
+    Verifies that get_user_categories retrieves and lists categories from the repository.
+    """
     user_id = uuid.uuid4()
     mock_category_repo.get_all_for_user.return_value = [
         MovementCategory(id=uuid.uuid4(), name="Global Category", user_id=None),
@@ -33,6 +38,12 @@ async def test_get_user_categories(category_service, mock_category_repo):
 
 @pytest.mark.asyncio
 async def test_create_category(category_service, mock_category_repo):
+    """
+    Test creating a new category for a user.
+
+    Verifies that create_category instantiates a category with the correct name,
+    description, is_income type, and user ID, and saves it in the repository.
+    """
     user_id = uuid.uuid4()
     mock_category_repo.create.side_effect = lambda x: x
 
@@ -46,6 +57,11 @@ async def test_create_category(category_service, mock_category_repo):
 
 @pytest.mark.asyncio
 async def test_delete_category_success(category_service, mock_category_repo):
+    """
+    Test successful deletion of a user-owned category.
+
+    Verifies that a user can delete a category they own, calling delete on the repository.
+    """
     user_id = uuid.uuid4()
     category_id = uuid.uuid4()
 
@@ -57,6 +73,12 @@ async def test_delete_category_success(category_service, mock_category_repo):
 
 @pytest.mark.asyncio
 async def test_delete_category_forbidden(category_service, mock_category_repo):
+    """
+    Test that deleting global or other users' categories is forbidden.
+
+    Verifies that a ValueError with FORBIDDEN_GLOBAL_OR_OTHER_USER_CATEGORY is raised
+    when a user attempts to delete a global category or a category owned by someone else.
+    """
     user_id = uuid.uuid4()
     other_user_id = uuid.uuid4()
     category_id = uuid.uuid4()

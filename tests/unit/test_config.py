@@ -4,6 +4,12 @@ from src.core.config import Settings
 
 
 def test_settings_load_default() -> None:
+    """
+    Test that settings load default values correctly.
+
+    Verifies that the default environment values are correctly assigned
+    when no specific environment variables are set.
+    """
     # Aseguramos que no haya variables de entorno que interfieran
     if "POSTGRES_USER" in os.environ:
         del os.environ["POSTGRES_USER"]
@@ -15,6 +21,12 @@ def test_settings_load_default() -> None:
 
 
 def test_settings_custom_env(monkeypatch) -> None:
+    """
+    Test that settings respect and parse custom environment variables.
+
+    Verifies that user-supplied environment variables (like POSTGRES_USER and POSTGRES_PASSWORD)
+    are successfully picked up by the Settings class, updating the database URL accordingly.
+    """
     monkeypatch.setenv("POSTGRES_USER", "test_user")
     monkeypatch.setenv("POSTGRES_PASSWORD", "test_pass")
 

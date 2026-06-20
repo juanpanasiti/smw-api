@@ -21,6 +21,12 @@ def account_service(mock_account_repo):
 
 @pytest.mark.asyncio
 async def test_get_user_accounts(account_service, mock_account_repo):
+    """
+    Test retrieving all accounts belonging to a specific owner.
+
+    Verifies that get_user_accounts calls get_all_for_owner on the repository
+    with the correct owner ID and returns the correct list of accounts.
+    """
     owner_id = uuid.uuid4()
     mock_account_repo.get_all_for_owner.return_value = [
         CreditCard(id=uuid.uuid4(), alias="Visa Gold", owner_id=owner_id),
@@ -33,6 +39,12 @@ async def test_get_user_accounts(account_service, mock_account_repo):
 
 @pytest.mark.asyncio
 async def test_create_credit_card(account_service, mock_account_repo):
+    """
+    Test creating a new credit card account for a user.
+
+    Verifies that create_credit_card initializes the card model with the provided schema data
+    and owner ID, and calls create on the repository.
+    """
     owner_id = uuid.uuid4()
     mock_account_repo.create.side_effect = lambda x: x
 
@@ -53,6 +65,12 @@ async def test_create_credit_card(account_service, mock_account_repo):
 
 @pytest.mark.asyncio
 async def test_create_extension_card_forbidden(account_service, mock_account_repo):
+    """
+    Test that creating an extension card linked to a parent card owned by someone else is forbidden.
+
+    Verifies that a ValueError with PARENT_CARD_NOT_FOUND_OR_FORBIDDEN is raised
+    when trying to create an extension card under a parent card owned by another user.
+    """
     owner_id = uuid.uuid4()
     other_owner_id = uuid.uuid4()
     parent_id = uuid.uuid4()
@@ -77,6 +95,12 @@ async def test_create_extension_card_forbidden(account_service, mock_account_rep
 
 @pytest.mark.asyncio
 async def test_delete_account_forbidden(account_service, mock_account_repo):
+    """
+    Test that deleting an account owned by a different user is forbidden.
+
+    Verifies that a ValueError with FORBIDDEN_ACCOUNT is raised when a user
+    attempts to delete an account they do not own.
+    """
     owner_id = uuid.uuid4()
     other_owner_id = uuid.uuid4()
     account_id = uuid.uuid4()
@@ -89,6 +113,12 @@ async def test_delete_account_forbidden(account_service, mock_account_repo):
 
 @pytest.mark.asyncio
 async def test_update_credit_card_not_found(account_service, mock_account_repo):
+    """
+    Test that updating a non-existent credit card raises an error.
+
+    Verifies that a ValueError with ACCOUNT_NOT_FOUND is raised when attempting to
+    update a credit card that does not exist in the repository.
+    """
     owner_id = uuid.uuid4()
     mock_account_repo.get_credit_card_by_id.return_value = None
 

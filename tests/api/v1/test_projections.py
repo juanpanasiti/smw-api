@@ -8,6 +8,15 @@ from httpx import AsyncClient
 @pytest.mark.asyncio
 @pytest.mark.integration
 async def test_projection_end_to_end(client: AsyncClient, auth_headers: dict[str, str]):
+    """
+    Test the end-to-end flow for credit card purchases and monthly projections.
+
+    Verifies that:
+    1. A new credit card can be created via POST /api/v1/accounts/credit-cards.
+    2. A purchase expense split into multiple installments can be registered via POST /api/v1/expenses/purchase.
+    3. The projection for the installment periods via GET /api/v1/projections/periods/{period}
+       correctly calculates and lists the installment amounts.
+    """
     # 1. Create a credit card
     card_res = await client.post(
         "/api/v1/accounts/credit-cards",

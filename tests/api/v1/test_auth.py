@@ -7,6 +7,14 @@ from httpx import AsyncClient
 @pytest.mark.asyncio
 @pytest.mark.integration
 async def test_auth_registration_and_login(client: AsyncClient):
+    """
+    Test user registration and subsequent login integration flow.
+
+    Verifies that:
+    1. A new user can be registered via POST /api/v1/auth/register.
+    2. The registered user can log in via POST /api/v1/auth/login using their credentials,
+       successfully returning an access token and a refresh token.
+    """
     uid = uuid.uuid4()
 
     # Registration returns UserResponseSchema (no tokens)

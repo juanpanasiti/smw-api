@@ -29,6 +29,12 @@ def bill_service(mock_bill_repo, mock_expense_service):
 
 @pytest.mark.asyncio
 async def test_create_service(bill_service, mock_bill_repo):
+    """
+    Test successful creation of a new bill service.
+
+    Verifies that create_service correctly saves the new service structure via the
+    repository and returns the created service.
+    """
     user_id = uuid.uuid4()
     schema = BillServiceCreateSchema(
         category_id=uuid.uuid4(),
@@ -48,6 +54,12 @@ async def test_create_service(bill_service, mock_bill_repo):
 
 @pytest.mark.asyncio
 async def test_create_issue_duplicate_period(bill_service, mock_bill_repo):
+    """
+    Test creating a bill issue when one already exists for the same period.
+
+    Verifies that a 409 Conflict HTTPException is raised when trying to register
+    a duplicate bill issue for a service in the same period.
+    """
     user_id = uuid.uuid4()
     service_id = uuid.uuid4()
 
@@ -72,6 +84,12 @@ async def test_create_issue_duplicate_period(bill_service, mock_bill_repo):
 
 @pytest.mark.asyncio
 async def test_pay_issue_success(bill_service, mock_bill_repo, mock_expense_service):
+    """
+    Test paying an unpaid bill issue successfully.
+
+    Verifies that paying a bill issue changes its status to 'paid', generates
+    the corresponding purchase expense using the expense service, and saves the updates.
+    """
     user_id = uuid.uuid4()
     issue_id = uuid.uuid4()
     account_id = uuid.uuid4()

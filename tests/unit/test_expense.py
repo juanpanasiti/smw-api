@@ -29,6 +29,12 @@ def expense_service(mock_expense_repo, mock_account_repo):
 
 @pytest.mark.asyncio
 async def test_create_purchase(expense_service, mock_expense_repo, mock_account_repo):
+    """
+    Test creating a new purchase expense and generating its payments.
+
+    Verifies that create_purchase creates the main Purchase object and automatically
+    calculates and stores the corresponding split installment payments in the repository.
+    """
     account_id = uuid.uuid4()
 
     schema = PurchaseCreateSchema(
@@ -68,6 +74,13 @@ async def test_create_purchase(expense_service, mock_expense_repo, mock_account_
 
 @pytest.mark.asyncio
 async def test_optimistic_locking_payment(expense_service, mock_expense_repo, mock_account_repo):
+    """
+    Test optimistic locking mechanism on payment status updates.
+
+    Verifies that updating a payment status:
+    1. Fails with a 409 HTTPException when the provided version_id does not match the record's current version_id.
+    2. Succeeds when the correct version_id is provided, updating the status accordingly.
+    """
     payment_id = uuid.uuid4()
     user_id = uuid.uuid4()
 

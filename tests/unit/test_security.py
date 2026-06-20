@@ -2,6 +2,12 @@ from src.core.security import create_access_token, create_refresh_token, get_pas
 
 
 def test_password_hashing():
+    """
+    Test password hashing and verification functionality.
+
+    Verifies that get_password_hash hashes passwords securely and verify_password
+    accurately matches passwords against their hashes.
+    """
     password = "supersecretpassword123"
     hashed = get_password_hash(password)
 
@@ -11,6 +17,12 @@ def test_password_hashing():
 
 
 def test_create_tokens():
+    """
+    Test the generation of access and refresh JSON Web Tokens (JWT).
+
+    Verifies that create_access_token and create_refresh_token generate non-empty
+    JWT string tokens for a given subject.
+    """
     subject = "user123"
     access_token = create_access_token(subject)
     refresh_token = create_refresh_token(subject)

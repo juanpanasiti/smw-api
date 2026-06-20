@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 
 from src.api.dependencies import get_account_controller, get_current_user_id
+from src.api.routes_classes import IdempotentRoute
 from src.controllers.account_controller import AccountController
 from src.schemas.account import (
     AccountListItemSchema,
@@ -13,7 +14,7 @@ from src.schemas.account import (
 )
 from src.schemas.response import StandardResponse
 
-router = APIRouter(prefix="/accounts", tags=["accounts"])
+router = APIRouter(prefix="/accounts", tags=["accounts"], route_class=IdempotentRoute)
 
 
 @router.get(

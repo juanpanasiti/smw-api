@@ -2,6 +2,7 @@ import uuid
 
 import structlog
 
+from src.core.redis import invalidate_user_projections
 from src.models.account import CreditCard
 from src.schemas.account import (
     AccountListItemSchema,
@@ -46,10 +47,12 @@ class AccountController:
     ) -> tuple[StandardResponse[CreditCardResponseSchema], int]:
         try:
             card = await self.account_service.create_credit_card(owner_id, schema)
+            await invalidate_user_projections(owner_id)
             logger.info("credit_card_created", owner_id=str(owner_id), card_id=str(card.id))
             return StandardResponse(success=True, data=CreditCardResponseSchema.model_validate(card)), 201
         except ValueError as e:
             return _make_error_response(str(e))
+
 
     async def update_credit_card(
         self,
@@ -59,6 +62,7 @@ class AccountController:
     ) -> tuple[StandardResponse[CreditCardResponseSchema], int]:
         try:
             card = await self.account_service.update_credit_card(owner_id, account_id, schema)
+            await invalidate_user_projections(owner_id)
             logger.info("credit_card_updated", owner_id=str(owner_id), card_id=str(card.id))
             return StandardResponse(success=True, data=CreditCardResponseSchema.model_validate(card)), 200
         except ValueError as e:
@@ -67,6 +71,7 @@ class AccountController:
     async def delete_account(self, owner_id: uuid.UUID, account_id: uuid.UUID) -> tuple[StandardResponse[None], int]:
         try:
             await self.account_service.delete_account(owner_id, account_id)
+            await invalidate_user_projections(owner_id)
             logger.info("account_deleted", owner_id=str(owner_id), account_id=str(account_id))
             return StandardResponse(success=True, data=None), 200
         except ValueError as e:

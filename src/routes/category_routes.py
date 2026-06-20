@@ -4,11 +4,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 
 from src.api.dependencies import get_category_controller, get_current_user_id
+from src.api.routes_classes import IdempotentRoute
 from src.controllers.category_controller import MovementCategoryController
 from src.schemas.category import MovementCategoryCreateSchema, MovementCategoryResponseSchema
 from src.schemas.response import StandardResponse
 
-router = APIRouter(prefix="/categories", tags=["categories"])
+router = APIRouter(prefix="/categories", tags=["categories"], route_class=IdempotentRoute)
 
 
 @router.get("/", status_code=status.HTTP_200_OK, response_model=StandardResponse[list[MovementCategoryResponseSchema]])

@@ -12,6 +12,7 @@ from src.controllers.auth_controller import AuthController
 from src.controllers.bill_controller import BillController
 from src.controllers.category_controller import MovementCategoryController
 from src.controllers.expense_controller import ExpenseController
+from src.controllers.projection_controller import ProjectionController
 from src.core.config import settings
 from src.core.database import get_db_session
 from src.core.redis import get_redis_client
@@ -26,6 +27,7 @@ from src.services.auth_service import AuthService
 from src.services.bill_service import BillServiceManager
 from src.services.category_service import MovementCategoryService
 from src.services.expense_service import ExpenseService
+from src.services.projection_service import ProjectionService
 
 # Dependencia para obtener la sesión de BD
 DbSession = Annotated[AsyncSession, Depends(get_db_session)]
@@ -132,3 +134,13 @@ async def get_bill_controller(
     bill_service: Annotated[BillServiceManager, Depends(get_bill_service)],
 ) -> BillController:
     return BillController(bill_service=bill_service)
+
+
+async def get_projection_service(db_session: Annotated[AsyncSession, Depends(get_db_session)]) -> ProjectionService:
+    return ProjectionService(session=db_session)
+
+
+async def get_projection_controller(
+    projection_service: Annotated[ProjectionService, Depends(get_projection_service)],
+) -> ProjectionController:
+    return ProjectionController(projection_service=projection_service)

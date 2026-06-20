@@ -1,5 +1,6 @@
 import uuid
 
+from src.core.redis import invalidate_user_projections
 from src.schemas.bill import (
     BillIssueCreateSchema,
     BillIssuePaySchema,
@@ -37,10 +38,12 @@ class BillController:
         self, user_id: uuid.UUID, data: BillIssueCreateSchema
     ) -> StandardResponse[BillIssueResponseSchema]:
         issue = await self.bill_service.create_issue(user_id, data)
+        await invalidate_user_projections(user_id)
         return StandardResponse(success=True, data=BillIssueResponseSchema.model_validate(issue))
 
     async def pay_issue(
         self, user_id: uuid.UUID, issue_id: uuid.UUID, data: BillIssuePaySchema
     ) -> StandardResponse[BillIssueResponseSchema]:
         issue = await self.bill_service.pay_issue(user_id, issue_id, data)
+        await invalidate_user_projections(user_id)
         return StandardResponse(success=True, data=BillIssueResponseSchema.model_validate(issue))

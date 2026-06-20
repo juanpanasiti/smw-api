@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, Query, status
 
 from src.api.dependencies import get_bill_controller, get_current_user_id
+from src.api.routes_classes import IdempotentRoute
 from src.controllers.bill_controller import BillController
 from src.schemas.bill import (
     BillIssueCreateSchema,
@@ -14,7 +15,7 @@ from src.schemas.bill import (
 )
 from src.schemas.response import StandardResponse
 
-router = APIRouter(prefix="/bills", tags=["bills"])
+router = APIRouter(prefix="/bills", tags=["bills"], route_class=IdempotentRoute)
 
 
 @router.get(

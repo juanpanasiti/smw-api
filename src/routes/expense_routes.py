@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, Query, status
 
 from src.api.dependencies import get_current_user_id, get_expense_controller
+from src.api.routes_classes import IdempotentRoute
 from src.controllers.expense_controller import ExpenseController
 from src.schemas.expense import (
     ExpenseListItemSchema,
@@ -16,7 +17,7 @@ from src.schemas.expense import (
 )
 from src.schemas.response import StandardResponse
 
-router = APIRouter(prefix="/expenses", tags=["expenses"])
+router = APIRouter(prefix="/expenses", tags=["expenses"], route_class=IdempotentRoute)
 
 
 @router.get(

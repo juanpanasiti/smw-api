@@ -18,10 +18,10 @@ class ExpenseController:
     def __init__(self, expense_service: ExpenseService):
         self.expense_service = expense_service
 
-    async def get_account_expenses(
-        self, user_id: uuid.UUID, account_id: uuid.UUID
+    async def get_expenses(
+        self, user_id: uuid.UUID, account_id: uuid.UUID | None = None, is_active: bool | None = None
     ) -> StandardResponse[list[ExpenseListItemSchema]]:
-        expenses = await self.expense_service.get_account_expenses(user_id, account_id)
+        expenses = await self.expense_service.get_expenses(user_id, account_id, is_active)
         data = []
         for exp in expenses:
             if isinstance(exp, Purchase):

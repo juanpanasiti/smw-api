@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, status
+from fastapi import APIRouter, Depends, Header, Query, status
 
 from src.api.dependencies import get_current_user_id, get_expense_controller
 from src.controllers.expense_controller import ExpenseController
@@ -20,16 +20,17 @@ router = APIRouter(prefix="/expenses", tags=["expenses"])
 
 
 @router.get(
-    "/account/{account_id}",
+    "/",
     status_code=status.HTTP_200_OK,
     response_model=StandardResponse[list[ExpenseListItemSchema]],
 )
-async def get_account_expenses(
-    account_id: uuid.UUID,
+async def get_expenses(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[ExpenseController, Depends(get_expense_controller)],
+    account_id: uuid.UUID | None = Query(None, description="Filtrar por ID de cuenta"),
+    is_active: bool | None = Query(None, description="Filtrar por estado activo/inactivo (True/False)"),
 ):
-    return await controller.get_account_expenses(user_id, account_id)
+    return await controller.get_expenses(user_id, account_id, is_active)
 
 
 @router.post(

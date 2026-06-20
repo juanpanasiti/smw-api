@@ -20,9 +20,12 @@ class ExpenseService:
         if not account or account.owner_id != user_id:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account not found or access denied")
 
-    async def get_account_expenses(self, user_id: uuid.UUID, account_id: uuid.UUID) -> list[Expense]:
-        await self._verify_account_ownership(user_id, account_id)
-        return await self.expense_repository.get_all_for_account(account_id)
+    async def get_expenses(
+        self, user_id: uuid.UUID, account_id: uuid.UUID | None = None, is_active: bool | None = None
+    ) -> list[Expense]:
+        if account_id:
+            await self._verify_account_ownership(user_id, account_id)
+        return await self.expense_repository.get_filtered(user_id, account_id, is_active)
 
     async def create_purchase(self, user_id: uuid.UUID, data: PurchaseCreateSchema) -> Purchase:
         await self._verify_account_ownership(user_id, data.account_id)

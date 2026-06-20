@@ -17,13 +17,25 @@ class ExpenseRepository:
         await self.session.refresh(expense)
         return expense
 
-    async def get_all_for_account(self, account_id: uuid.UUID) -> list[Expense]:
+    async def get_filtered(
+        self, user_id: uuid.UUID, account_id: uuid.UUID | None = None, is_active: bool | None = None
+    ) -> list[Expense]:
+        from src.models.account import Account
+
         stmt = (
             select(Expense)
-            .where(Expense.account_id == account_id)
+            .join(Account, Expense.account_id == Account.id)
+            .where(Account.owner_id == user_id)
             .options(selectin_polymorphic(Expense, [Purchase, Subscription]))
             .order_by(Expense.acquired_at.desc())
         )
+
+        if account_id:
+            stmt = stmt.where(Expense.account_id == account_id)
+
+        if is_active is not None:
+            stmt = stmt.where(Expense.is_active == is_active)
+
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 

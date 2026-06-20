@@ -18,8 +18,10 @@ class ExpenseController:
     def __init__(self, expense_service: ExpenseService):
         self.expense_service = expense_service
 
-    async def get_account_expenses(self, account_id: uuid.UUID) -> StandardResponse[list[ExpenseListItemSchema]]:
-        expenses = await self.expense_service.get_account_expenses(account_id)
+    async def get_account_expenses(
+        self, user_id: uuid.UUID, account_id: uuid.UUID
+    ) -> StandardResponse[list[ExpenseListItemSchema]]:
+        expenses = await self.expense_service.get_account_expenses(user_id, account_id)
         data = []
         for exp in expenses:
             if isinstance(exp, Purchase):
@@ -28,16 +30,20 @@ class ExpenseController:
                 data.append(SubscriptionResponseSchema.model_validate(exp))
         return StandardResponse(success=True, data=data)
 
-    async def create_purchase(self, data: PurchaseCreateSchema) -> StandardResponse[PurchaseResponseSchema]:
-        purchase = await self.expense_service.create_purchase(data)
+    async def create_purchase(
+        self, user_id: uuid.UUID, data: PurchaseCreateSchema
+    ) -> StandardResponse[PurchaseResponseSchema]:
+        purchase = await self.expense_service.create_purchase(user_id, data)
         return StandardResponse(success=True, data=PurchaseResponseSchema.model_validate(purchase))
 
-    async def create_subscription(self, data: SubscriptionCreateSchema) -> StandardResponse[SubscriptionResponseSchema]:
-        subscription = await self.expense_service.create_subscription(data)
+    async def create_subscription(
+        self, user_id: uuid.UUID, data: SubscriptionCreateSchema
+    ) -> StandardResponse[SubscriptionResponseSchema]:
+        subscription = await self.expense_service.create_subscription(user_id, data)
         return StandardResponse(success=True, data=SubscriptionResponseSchema.model_validate(subscription))
 
     async def update_payment_status(
-        self, payment_id: uuid.UUID, data: PaymentUpdateSchema
+        self, user_id: uuid.UUID, payment_id: uuid.UUID, data: PaymentUpdateSchema
     ) -> StandardResponse[PaymentResponseSchema]:
-        payment = await self.expense_service.update_payment_status(payment_id, data)
+        payment = await self.expense_service.update_payment_status(user_id, payment_id, data)
         return StandardResponse(success=True, data=PaymentResponseSchema.model_validate(payment))

@@ -1,9 +1,9 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Header, status
 
-from src.api.dependencies import get_expense_controller
+from src.api.dependencies import get_current_user_id, get_expense_controller
 from src.controllers.expense_controller import ExpenseController
 from src.schemas.expense import (
     ExpenseListItemSchema,
@@ -26,9 +26,10 @@ router = APIRouter(prefix="/expenses", tags=["expenses"])
 )
 async def get_account_expenses(
     account_id: uuid.UUID,
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[ExpenseController, Depends(get_expense_controller)],
 ):
-    return await controller.get_account_expenses(account_id)
+    return await controller.get_account_expenses(user_id, account_id)
 
 
 @router.post(
@@ -38,9 +39,11 @@ async def get_account_expenses(
 )
 async def create_purchase(
     data: PurchaseCreateSchema,
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[ExpenseController, Depends(get_expense_controller)],
+    idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
 ):
-    return await controller.create_purchase(data)
+    return await controller.create_purchase(user_id, data)
 
 
 @router.post(
@@ -50,9 +53,11 @@ async def create_purchase(
 )
 async def create_subscription(
     data: SubscriptionCreateSchema,
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[ExpenseController, Depends(get_expense_controller)],
+    idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
 ):
-    return await controller.create_subscription(data)
+    return await controller.create_subscription(user_id, data)
 
 
 @router.patch(
@@ -63,6 +68,8 @@ async def create_subscription(
 async def update_payment_status(
     payment_id: uuid.UUID,
     data: PaymentUpdateSchema,
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[ExpenseController, Depends(get_expense_controller)],
+    idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
 ):
-    return await controller.update_payment_status(payment_id, data)
+    return await controller.update_payment_status(user_id, payment_id, data)

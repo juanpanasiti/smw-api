@@ -103,8 +103,9 @@ async def get_expense_repository(session: DbSession) -> ExpenseRepository:
 
 async def get_expense_service(
     expense_repository: Annotated[ExpenseRepository, Depends(get_expense_repository)],
+    account_repository: Annotated[AccountRepository, Depends(get_account_repository)],
 ) -> ExpenseService:
-    return ExpenseService(expense_repository=expense_repository)
+    return ExpenseService(expense_repository=expense_repository, account_repository=account_repository)
 
 
 async def get_expense_controller(

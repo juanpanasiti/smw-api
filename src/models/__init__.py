@@ -1,4 +1,5 @@
 from src.models.account import Account, CreditCard
+from src.models.bill import BillIssue, BillService
 from src.models.category import MovementCategory
 from src.models.expense import Expense, Payment, Purchase, Subscription
 from src.models.profile import Profile
@@ -14,4 +15,6 @@ __all__ = [
     "Purchase",
     "Subscription",
     "Payment",
+    "BillService",
+    "BillIssue",
 ]

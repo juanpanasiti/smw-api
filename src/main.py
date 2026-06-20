@@ -6,6 +6,7 @@ from src.core.config import settings
 from src.core.logger import setup_logging
 from src.routes.account_routes import router as account_router
 from src.routes.auth_routes import router as auth_router
+from src.routes.bill_routes import router as bill_router
 from src.routes.category_routes import router as category_router
 from src.routes.expense_routes import router as expense_router
 
@@ -30,6 +31,7 @@ app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(category_router, prefix=settings.API_V1_STR)
 app.include_router(account_router, prefix=settings.API_V1_STR)
 app.include_router(expense_router, prefix=settings.API_V1_STR)
+app.include_router(bill_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/health", tags=["health"])

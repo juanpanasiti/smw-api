@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.controllers.account_controller import AccountController
 from src.controllers.auth_controller import AuthController
+from src.controllers.bill_controller import BillController
 from src.controllers.category_controller import MovementCategoryController
 from src.controllers.expense_controller import ExpenseController
 from src.core.config import settings
@@ -16,11 +17,13 @@ from src.core.database import get_db_session
 from src.core.redis import get_redis_client
 from src.core.security import ALGORITHM, SECRET_KEY
 from src.repositories.account_repository import AccountRepository
+from src.repositories.bill_repository import BillRepository
 from src.repositories.category_repository import MovementCategoryRepository
 from src.repositories.expense_repository import ExpenseRepository
 from src.repositories.user_repository import UserRepository
 from src.services.account_service import AccountService
 from src.services.auth_service import AuthService
+from src.services.bill_service import BillServiceManager
 from src.services.category_service import MovementCategoryService
 from src.services.expense_service import ExpenseService
 
@@ -112,3 +115,20 @@ async def get_expense_controller(
     expense_service: Annotated[ExpenseService, Depends(get_expense_service)],
 ) -> ExpenseController:
     return ExpenseController(expense_service=expense_service)
+
+
+async def get_bill_repository(db_session: Annotated[AsyncSession, Depends(get_db_session)]) -> BillRepository:
+    return BillRepository(session=db_session)
+
+
+async def get_bill_service(
+    bill_repository: Annotated[BillRepository, Depends(get_bill_repository)],
+    expense_service: Annotated[ExpenseService, Depends(get_expense_service)],
+) -> BillServiceManager:
+    return BillServiceManager(bill_repository=bill_repository, expense_service=expense_service)
+
+
+async def get_bill_controller(
+    bill_service: Annotated[BillServiceManager, Depends(get_bill_service)],
+) -> BillController:
+    return BillController(bill_service=bill_service)

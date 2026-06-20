@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, status
 from src.api.dependencies import get_account_controller, get_current_user_id
 from src.controllers.account_controller import AccountController
 from src.schemas.account import (
-    AccountResponseSchema,
+    AccountListItemSchema,
     CreditCardCreateSchema,
     CreditCardResponseSchema,
     CreditCardUpdateSchema,
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/accounts", tags=["accounts"])
 @router.get(
     "/",
     status_code=status.HTTP_200_OK,
-    response_model=StandardResponse[list[AccountResponseSchema]],
+    response_model=StandardResponse[list[AccountListItemSchema]],
 )
 async def get_accounts(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],

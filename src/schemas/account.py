@@ -1,5 +1,6 @@
 import uuid
 from decimal import Decimal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -15,7 +16,7 @@ class AccountResponseSchema(BaseModel):
     owner_id: uuid.UUID
     alias: str
     is_enabled: bool
-    account_type: str
+    account_type: Literal["account"] = "account"
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -38,7 +39,12 @@ class CreditCardUpdateSchema(BaseModel):
     financing_limit: Decimal | None = Field(None, ge=Decimal("0.00"), decimal_places=2, max_digits=12)
 
 
-class CreditCardResponseSchema(AccountResponseSchema):
+class CreditCardResponseSchema(BaseModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    alias: str
+    is_enabled: bool
+    account_type: Literal["credit_card"] = "credit_card"
     closing_day: int
     due_day: int
     limit: Decimal
@@ -46,3 +52,7 @@ class CreditCardResponseSchema(AccountResponseSchema):
     main_credit_card_id: uuid.UUID | None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# Discriminated union for polymorphic list serialization
+AccountListItemSchema = Annotated[CreditCardResponseSchema | AccountResponseSchema, Field(discriminator="account_type")]

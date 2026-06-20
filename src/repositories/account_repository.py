@@ -2,6 +2,7 @@ import uuid
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectin_polymorphic
 
 from src.models.account import Account, CreditCard
 
@@ -11,7 +12,12 @@ class AccountRepository:
         self.session = session
 
     async def get_all_for_owner(self, owner_id: uuid.UUID) -> list[Account]:
-        stmt = select(Account).where(Account.owner_id == owner_id).order_by(Account.alias)
+        stmt = (
+            select(Account)
+            .where(Account.owner_id == owner_id)
+            .options(selectin_polymorphic(Account, [CreditCard]))
+            .order_by(Account.alias)
+        )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 

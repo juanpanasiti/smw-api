@@ -4,6 +4,7 @@ import structlog
 
 from src.models.account import CreditCard
 from src.schemas.account import (
+    AccountListItemSchema,
     AccountResponseSchema,
     CreditCardCreateSchema,
     CreditCardResponseSchema,
@@ -30,9 +31,9 @@ class AccountController:
     def __init__(self, account_service: AccountService):
         self.account_service = account_service
 
-    async def get_all(self, owner_id: uuid.UUID) -> StandardResponse[list[AccountResponseSchema]]:
+    async def get_all(self, owner_id: uuid.UUID) -> StandardResponse[list[AccountListItemSchema]]:
         accounts = await self.account_service.get_user_accounts(owner_id)
-        data = []
+        data: list[AccountListItemSchema] = []
         for acc in accounts:
             if isinstance(acc, CreditCard):
                 data.append(CreditCardResponseSchema.model_validate(acc))

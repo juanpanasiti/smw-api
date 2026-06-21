@@ -13,6 +13,7 @@ This configuration document serves as the absolute source of truth for AI develo
     3.  All monetary processing must exclusively utilize Python's `decimal.Decimal` class. Never use `float`.
     4. All the code and comments must be in English, regardless of the developer's native language, to maintain consistency and accessibility for all contributors.
     5. For each code modification, analyze whether the documentation in [README.md](file:///home/juan/Projects/PROJECT%20SMW/smw-api/README.md), [ARCHITECTURE.md](file:///home/juan/Projects/PROJECT%20SMW/smw-api/ARCHITECTURE.md), and [API_REFERENCE.md](file:///home/juan/Projects/PROJECT%20SMW/smw-api/API_REFERENCE.md) needs to be updated to ensure it remains current, and update them if necessary.
+    6. Whenever any test file under the `tests/` directory is **added**, **modified**, or **deleted**, the [tests/README.md](file:///home/juan/Projects/PROJECT%20SMW/smw-api/tests/README.md) file **must** be updated accordingly. Each entry in that file must document: the **scenario** exercised by the test, the **input data** it starts from, and the **expected result**. This file is the single source of truth for the test suite catalogue and must never fall out of sync with the actual test code.
 
 ---
 

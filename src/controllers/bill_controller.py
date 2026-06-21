@@ -7,6 +7,7 @@ from src.schemas.bill import (
     BillIssueCreateSchema,
     BillIssuePaySchema,
     BillIssueResponseSchema,
+    BillIssueUpdateSchema,
     BillServiceCreateSchema,
     BillServiceResponseSchema,
     BillServiceUpdateSchema,
@@ -69,4 +70,12 @@ class BillController:
     ) -> StandardResponse[BillIssueResponseSchema]:
         issue = await self.bill_service.pay_issue(user_id, issue_id, data)
         await invalidate_user_projections(user_id)
+        return StandardResponse(success=True, data=BillIssueResponseSchema.model_validate(issue))
+
+    async def update_issue(
+        self, user_id: uuid.UUID, issue_id: uuid.UUID, data: BillIssueUpdateSchema
+    ) -> StandardResponse[BillIssueResponseSchema]:
+        issue = await self.bill_service.update_issue(user_id, issue_id, data)
+        await invalidate_user_projections(user_id)
+        logger.info("bill_issue_updated", user_id=str(user_id), issue_id=str(issue_id))
         return StandardResponse(success=True, data=BillIssueResponseSchema.model_validate(issue))

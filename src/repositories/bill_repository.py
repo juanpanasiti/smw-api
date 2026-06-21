@@ -66,5 +66,21 @@ class BillRepository:
 
     async def update_issue(self, issue: BillIssue) -> BillIssue:
         await self.session.flush()
+        await self.session.refresh(issue)
         await self.session.refresh(issue, attribute_names=["bill_service"])
         return issue
+
+    async def get_issue_by_service_and_period_excluding(
+        self, service_id: uuid.UUID, period: str, exclude_id: uuid.UUID
+    ) -> BillIssue | None:
+        """Return an existing issue for the given service/period pair, excluding a specific issue ID.
+
+        Used during updates to detect period conflicts without matching the issue being updated.
+        """
+        stmt = select(BillIssue).where(
+            BillIssue.bill_service_id == service_id,
+            BillIssue.period == period,
+            BillIssue.id != exclude_id,
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()

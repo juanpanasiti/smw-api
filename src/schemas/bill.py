@@ -59,6 +59,19 @@ class BillIssuePaySchema(BaseModel):
     account_id: uuid.UUID
 
 
+class BillIssueUpdateSchema(BaseModel):
+    amount: Decimal | None = Field(None, gt=Decimal("0.00"), decimal_places=2, max_digits=12)
+    due_date: date | None = None
+    period: str | None = Field(None, pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])$")
+    status: str | None = Field(None, pattern=r"^(unpaid|paid|cancelled)$")
+
+    @model_validator(mode="after")
+    def check_at_least_one_field(self) -> "BillIssueUpdateSchema":
+        if all(v is None for v in (self.amount, self.due_date, self.period, self.status)):
+            raise ValueError("At least one field must be provided for update")
+        return self
+
+
 class BillIssueResponseSchema(BillIssueBase):
     id: uuid.UUID
     bill_service_id: uuid.UUID

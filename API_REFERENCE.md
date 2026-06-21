@@ -38,6 +38,7 @@
   - [PATCH /bills/services/{service_id}](#patch-billsservicesservice_id)
   - [GET /bills/issues](#get-billsissues)
   - [POST /bills/issues](#post-billsissues)
+  - [PATCH /bills/issues/{issue_id}](#patch-billsissuesissue_id)
   - [POST /bills/issues/{issue_id}/pay](#post-billsissuesissue_idpay)
 - [Projections](#projections)
   - [GET /projections/periods](#get-projectionperiods)
@@ -888,8 +889,9 @@ Returns all bill issues for a given period.
 
 | `status` value | Description                               |
 |----------------|-------------------------------------------|
-| `pending`      | Invoice received, not yet paid            |
-| `paid`         | Invoice has been paid                     |
+| `unpaid`       | Invoice received, not yet paid            |
+| `paid`         | Invoice has been paid via `pay_issue`     |
+| `cancelled`    | Invoice manually cancelled                |
 
 ---
 
@@ -921,6 +923,53 @@ Registers a new monthly invoice (issue) for an existing bill service.
 #### Response `201 Created`
 
 Returns the created `BillIssueResponseSchema` wrapped in the standard envelope.
+
+---
+
+### PATCH /bills/issues/{issue_id}
+
+Partially updates a bill issue owned by the authenticated user. All fields are optional, but at least one must be provided. Issues in `paid` status are locked and cannot be modified.
+
+- **Auth required:** Yes
+- **Idempotency-Key required:** Yes
+
+#### Path Parameters
+
+| Parameter  | Type   | Description              |
+|------------|--------|--------------------------|
+| `issue_id` | `UUID` | The bill issue to update |
+
+#### Request Body
+
+```json
+{
+  "amount": "9500.00",
+  "due_date": "2025-04-25",
+  "period": "2025-05",
+  "status": "cancelled"
+}
+```
+
+| Field      | Type      | Constraints                                                              |
+|------------|-----------|--------------------------------------------------------------------------|
+| `amount`   | `Decimal` | Optional, > 0.00, up to 12 digits, 2 decimal places                      |
+| `due_date` | `date`    | Optional, `YYYY-MM-DD`                                                   |
+| `period`   | `string`  | Optional, format `YYYY-MM` — must not conflict with another issue of the same service |
+| `status`   | `string`  | Optional — one of `unpaid`, `paid`, `cancelled`                          |
+
+> At least one field must be provided; an empty body returns `422 Unprocessable Entity`.
+
+#### Response `200 OK`
+
+Returns the updated `BillIssueResponseSchema` wrapped in the standard envelope.
+
+#### Error Codes
+
+| HTTP Status | `error.code`                  | Description                                                      |
+|-------------|-------------------------------|------------------------------------------------------------------|
+| `404`       | —                             | Issue does not exist or belongs to another user                  |
+| `409`       | `BILL_ISSUE_ALREADY_PAID`     | The issue is in `paid` status and cannot be modified             |
+| `409`       | `BILL_ISSUE_PERIOD_CONFLICT`  | The requested `period` is already occupied by another issue of the same service |
 
 ---
 

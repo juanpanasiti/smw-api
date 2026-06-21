@@ -10,6 +10,7 @@ from src.schemas.bill import (
     BillIssueCreateSchema,
     BillIssuePaySchema,
     BillIssueResponseSchema,
+    BillIssueUpdateSchema,
     BillServiceCreateSchema,
     BillServiceResponseSchema,
     BillServiceUpdateSchema,
@@ -90,6 +91,21 @@ async def create_issue(
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
 ):
     return await controller.create_issue(user_id, data)
+
+
+@router.patch(
+    "/issues/{issue_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[BillIssueResponseSchema],
+)
+async def update_issue(
+    issue_id: uuid.UUID,
+    data: BillIssueUpdateSchema,
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+    controller: Annotated[BillController, Depends(get_bill_controller)],
+    idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID to guarantee idempotency"),  # noqa: ARG001
+):
+    return await controller.update_issue(user_id, issue_id, data)
 
 
 @router.post(

@@ -117,3 +117,14 @@ async def auth_headers(client: httpx.AsyncClient) -> dict[str, str]:
     assert login_res.status_code == 200, login_res.text
     token = login_res.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+import pytest
+from unittest.mock import AsyncMock
+
+@pytest.fixture(autouse=True)
+def mock_redis_globally(monkeypatch):
+    monkeypatch.setattr("src.core.redis.redis_client.get", AsyncMock(return_value=None))
+    monkeypatch.setattr("src.core.redis.redis_client.set", AsyncMock(return_value=None))
+    monkeypatch.setattr("src.core.redis.redis_client.scan", AsyncMock(return_value=(0, [])))
+    monkeypatch.setattr("src.core.redis.redis_client.delete", AsyncMock(return_value=None))

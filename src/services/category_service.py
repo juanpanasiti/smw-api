@@ -2,7 +2,7 @@ import uuid
 
 from src.models.category import MovementCategory
 from src.repositories.category_repository import MovementCategoryRepository
-from src.schemas.category import MovementCategoryCreateSchema
+from src.schemas.category import MovementCategoryCreateSchema, MovementCategoryUpdateSchema
 
 
 class MovementCategoryService:
@@ -17,6 +17,30 @@ class MovementCategoryService:
             user_id=user_id, name=schema.name, description=schema.description, is_income=schema.is_income
         )
         return await self.category_repo.create(category)
+
+    async def update_category(
+        self, user_id: uuid.UUID, category_id: uuid.UUID, schema: MovementCategoryUpdateSchema
+    ) -> MovementCategory:
+        category = await self.category_repo.get_by_id(category_id)
+        if not category:
+            raise ValueError("CATEGORY_NOT_FOUND")
+
+        if category.user_id != user_id:
+            raise ValueError("FORBIDDEN_GLOBAL_OR_OTHER_USER_CATEGORY")
+
+        if schema.is_income is not None and schema.is_income != category.is_income:
+            has_expenses = await self.category_repo.has_expenses(category_id)
+            if has_expenses:
+                raise ValueError("CATEGORY_HAS_EXPENSES")
+
+        if schema.name is not None:
+            category.name = schema.name
+        if schema.description is not None:
+            category.description = schema.description
+        if schema.is_income is not None:
+            category.is_income = schema.is_income
+
+        return await self.category_repo.update(category)
 
     async def delete_category(self, user_id: uuid.UUID, category_id: uuid.UUID) -> None:
         category = await self.category_repo.get_by_id(category_id)

@@ -4,6 +4,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.category import MovementCategory
+from src.models.expense import Expense
 
 
 class MovementCategoryRepository:
@@ -26,8 +27,17 @@ class MovementCategoryRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def has_expenses(self, category_id: uuid.UUID) -> bool:
+        stmt = select(Expense.id).where(Expense.category_id == category_id).limit(1)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none() is not None
+
     async def create(self, category: MovementCategory) -> MovementCategory:
         self.session.add(category)
+        await self.session.flush()
+        return category
+
+    async def update(self, category: MovementCategory) -> MovementCategory:
         await self.session.flush()
         return category
 

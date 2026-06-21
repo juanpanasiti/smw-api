@@ -303,6 +303,49 @@ Returns the created category object wrapped in the standard envelope.
 
 ---
 
+### PATCH /categories/{category_id}
+
+Updates an existing user-defined category. At least one field must be provided. The `is_income` field cannot be modified if the category has associated expenses.
+
+- **Auth required:** Yes
+- **Idempotency-Key required:** Yes
+
+#### Path Parameters
+
+| Parameter     | Type   | Description          |
+|---------------|--------|----------------------|
+| `category_id` | `UUID` | The category to update |
+
+#### Request Body
+
+```json
+{
+  "name": "Streaming & Entertainment",
+  "description": "Updated description",
+  "is_income": false
+}
+```
+
+| Field         | Type      | Constraints                                         |
+|---------------|-----------|-----------------------------------------------------|
+| `name`        | `string`  | Optional, max 100 chars                             |
+| `description` | `string`  | Optional, max 1000 chars                            |
+| `is_income`   | `boolean` | Optional, cannot be changed if expenses are present |
+
+#### Response `200 OK`
+
+Returns the updated category object wrapped in the standard envelope.
+
+#### Error Codes
+
+| HTTP Status | `error.code`         | Description                                 |
+|-------------|----------------------|---------------------------------------------|
+| `400`       | `CATEGORY_HAS_EXPENSES` | Cannot update `is_income` because there are expenses associated |
+| `404`       | `CATEGORY_NOT_FOUND` | Category does not exist                     |
+| `403`       | `FORBIDDEN_OPERATION`| Attempted to update a system-level or other user's category |
+
+---
+
 ### DELETE /categories/{category_id}
 
 Deletes a user-defined category. System categories (`user_id = null`) cannot be deleted.

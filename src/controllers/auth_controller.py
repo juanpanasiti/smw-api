@@ -1,7 +1,7 @@
 import structlog
 
 from src.schemas.response import ErrorDetail, StandardResponse
-from src.schemas.token import Token
+from src.schemas.token import RefreshTokenRequest, Token
 from src.schemas.user import UserCreateSchema, UserLoginSchema, UserResponseSchema
 from src.services.auth_service import AuthService
 
@@ -40,6 +40,22 @@ class AuthController:
                     error=ErrorDetail(
                         code="INVALID_CREDENTIALS",
                         message="Incorrect email or password.",
+                    ),
+                )
+            raise
+
+    async def refresh_tokens(self, schema: RefreshTokenRequest) -> StandardResponse[Token]:
+        try:
+            token = await self.auth_service.refresh_tokens(schema.refresh_token)
+            logger.info("tokens_refreshed")
+            return StandardResponse(success=True, data=token)
+        except ValueError as e:
+            if str(e) in ["INVALID_TOKEN", "INVALID_TOKEN_TYPE", "USER_NOT_FOUND"]:
+                return StandardResponse(
+                    success=False,
+                    error=ErrorDetail(
+                        code="INVALID_REFRESH_TOKEN",
+                        message="The provided refresh token is invalid or expired.",
                     ),
                 )
             raise

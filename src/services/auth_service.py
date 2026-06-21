@@ -1,4 +1,6 @@
-from src.core.security import create_access_token, create_refresh_token, get_password_hash, verify_password
+import uuid
+from jose import JWTError, jwt
+from src.core.security import ALGORITHM, SECRET_KEY, create_access_token, create_refresh_token, get_password_hash, verify_password
 from src.models.profile import Profile
 from src.models.user import User
 from src.repositories.user_repository import UserRepository
@@ -41,3 +43,24 @@ class AuthService:
         refresh_token = create_refresh_token(subject=str(user.id))
 
         return Token(access_token=access_token, refresh_token=refresh_token)
+
+    async def refresh_tokens(self, refresh_token: str) -> Token:
+        try:
+            payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+            token_type: str = payload.get("type")
+            if token_type != "refresh":
+                raise ValueError("INVALID_TOKEN_TYPE")
+            user_id: str = payload.get("sub")
+            if user_id is None:
+                raise ValueError("INVALID_TOKEN")
+        except JWTError:
+            raise ValueError("INVALID_TOKEN")
+
+        user = await self.user_repo.get_by_id(uuid.UUID(user_id))
+        if not user:
+            raise ValueError("USER_NOT_FOUND")
+
+        access_token = create_access_token(subject=str(user.id))
+        new_refresh_token = create_refresh_token(subject=str(user.id))
+
+        return Token(access_token=access_token, refresh_token=new_refresh_token)

@@ -16,6 +16,7 @@
 - [Auth](#auth)
   - [POST /auth/register](#post-authregister)
   - [POST /auth/login](#post-authlogin)
+  - [POST /auth/refresh](#post-authrefresh)
 - [Categories](#categories)
   - [GET /categories/](#get-categories)
   - [POST /categories/](#post-categories)
@@ -194,6 +195,40 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
 {
   "access_token": "<jwt>",
   "refresh_token": "<jwt>",
+  "token_type": "bearer"
+}
+```
+
+---
+
+### POST /auth/refresh
+
+Renews an expired access token using a valid refresh token. This endpoint uses **Refresh Token Rotation**, returning both a new access token and a new refresh token.
+
+- **Auth required:** No
+- **Idempotency-Key required:** No
+- **Content-Type:** `application/json`
+
+#### Request Body
+
+```json
+{
+  "refresh_token": "<jwt>"
+}
+```
+
+| Field           | Type     | Description                               |
+|-----------------|----------|-------------------------------------------|
+| `refresh_token` | `string` | The refresh token obtained during login   |
+
+#### Response `200 OK`
+
+> ⚠️ This endpoint returns the token object **directly**, just like `/auth/login`.
+
+```json
+{
+  "access_token": "<new_jwt>",
+  "refresh_token": "<new_jwt>",
   "token_type": "bearer"
 }
 ```

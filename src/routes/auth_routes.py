@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from src.api.dependencies import get_auth_controller
 from src.controllers.auth_controller import AuthController
 from src.schemas.response import StandardResponse
-from src.schemas.token import Token
+from src.schemas.token import RefreshTokenRequest, Token
 from src.schemas.user import UserCreateSchema, UserLoginSchema, UserResponseSchema
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -32,6 +32,17 @@ async def login(
 ):
     schema = UserLoginSchema(email=form_data.username, password=form_data.password)
     response = await controller.login(schema)
+    if not response.success:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=response.model_dump())
+    return response.data
+
+
+@router.post("/refresh", status_code=status.HTTP_200_OK, response_model=Token)
+async def refresh(
+    schema: RefreshTokenRequest,
+    controller: Annotated[AuthController, Depends(get_auth_controller)],
+):
+    response = await controller.refresh_tokens(schema)
     if not response.success:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=response.model_dump())
     return response.data

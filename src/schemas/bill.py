@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 # Bill Service Schemas
@@ -16,6 +16,23 @@ class BillServiceBase(BaseModel):
 
 class BillServiceCreateSchema(BillServiceBase):
     pass
+
+
+class BillServiceUpdateSchema(BaseModel):
+    category_id: uuid.UUID | None = None
+    name: str | None = Field(None, max_length=100)
+    service_type: str | None = Field(None, max_length=50)
+    expected_arrival_day: int | None = Field(None, ge=1, le=31)
+    is_active: bool | None = None
+
+    @model_validator(mode="after")
+    def check_at_least_one_field(self) -> "BillServiceUpdateSchema":
+        if all(
+            v is None
+            for v in (self.category_id, self.name, self.service_type, self.expected_arrival_day, self.is_active)
+        ):
+            raise ValueError("At least one field must be provided for update")
+        return self
 
 
 class BillServiceResponseSchema(BillServiceBase):

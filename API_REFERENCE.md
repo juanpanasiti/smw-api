@@ -35,6 +35,7 @@
 - [Bills](#bills)
   - [GET /bills/services](#get-billsservices)
   - [POST /bills/services](#post-billsservices)
+  - [PATCH /bills/services/{service_id}](#patch-billsservicesservice_id)
   - [GET /bills/issues](#get-billsissues)
   - [POST /bills/issues](#post-billsissues)
   - [POST /bills/issues/{issue_id}/pay](#post-billsissuesissue_idpay)
@@ -802,6 +803,50 @@ Creates a new recurring bill service.
 #### Response `201 Created`
 
 Returns the created `BillServiceResponseSchema` wrapped in the standard envelope.
+
+---
+
+### PATCH /bills/services/{service_id}
+
+Partially updates an existing bill service owned by the authenticated user. All fields are optional, but at least one must be provided.
+
+- **Auth required:** Yes
+- **Idempotency-Key required:** Yes
+
+#### Path Parameters
+
+| Parameter    | Type   | Description                    |
+|--------------|--------|--------------------------------|
+| `service_id` | `UUID` | The bill service to update     |
+
+#### Request Body
+
+```json
+{
+  "name": "Electricity Updated",
+  "is_active": false
+}
+```
+
+| Field                  | Type      | Constraints                                                   |
+|------------------------|-----------|---------------------------------------------------------------|
+| `category_id`          | `UUID`    | Optional                                                      |
+| `name`                 | `string`  | Optional, max 100 chars                                       |
+| `service_type`         | `string`  | Optional, max 50 chars                                        |
+| `expected_arrival_day` | `integer` | Optional, 1–31                                                |
+| `is_active`            | `boolean` | Optional                                                      |
+
+> At least one field must be provided; an empty body returns `422 Unprocessable Entity`.
+
+#### Response `200 OK`
+
+Returns the updated `BillServiceResponseSchema` wrapped in the standard envelope.
+
+#### Error Codes
+
+| HTTP Status | `error.code`             | Description                                                  |
+|-------------|--------------------------|--------------------------------------------------------------|
+| `404`       | `BILL_SERVICE_NOT_FOUND` | Service does not exist or belongs to another user            |
 
 ---
 

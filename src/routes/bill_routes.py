@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 
 from src.api.dependencies import get_bill_controller, get_current_user_id
 from src.api.routes_classes import IdempotentRoute
@@ -12,6 +12,7 @@ from src.schemas.bill import (
     BillIssueResponseSchema,
     BillServiceCreateSchema,
     BillServiceResponseSchema,
+    BillServiceUpdateSchema,
 )
 from src.schemas.response import StandardResponse
 
@@ -42,6 +43,26 @@ async def create_service(
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
 ):
     return await controller.create_service(user_id, data)
+
+
+@router.patch(
+    "/services/{service_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[BillServiceResponseSchema],
+)
+async def update_service(
+    service_id: uuid.UUID,
+    data: BillServiceUpdateSchema,
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+    controller: Annotated[BillController, Depends(get_bill_controller)],
+    idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
+):
+    response = await controller.update_service(user_id, service_id, data)
+    if not response.success:
+        if response.error.code == "BILL_SERVICE_NOT_FOUND":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response.model_dump())
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.model_dump())
+    return response
 
 
 @router.get(

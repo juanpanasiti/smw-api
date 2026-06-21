@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 
 from src.models.bill import BillIssue, BillService
 from src.repositories.bill_repository import BillRepository
-from src.schemas.bill import BillIssueCreateSchema, BillIssuePaySchema, BillServiceCreateSchema
+from src.schemas.bill import BillIssueCreateSchema, BillIssuePaySchema, BillServiceCreateSchema, BillServiceUpdateSchema
 from src.schemas.expense import PurchaseCreateSchema
 from src.services.expense_service import ExpenseService
 
@@ -28,6 +28,29 @@ class BillServiceManager:
             is_active=data.is_active,
         )
         return await self.bill_repository.create_service(service)
+
+    async def update_service(
+        self, user_id: uuid.UUID, service_id: uuid.UUID, data: BillServiceUpdateSchema
+    ) -> BillService:
+        service = await self.bill_repository.get_service_by_id(service_id)
+        if not service or service.user_id != user_id:
+            raise ValueError("BILL_SERVICE_NOT_FOUND")
+
+        if data.category_id is not None:
+            service.category_id = data.category_id
+        if data.name is not None:
+            service.name = data.name
+        if data.service_type is not None:
+            service.service_type = data.service_type
+        if data.expected_arrival_day is not None:
+            service.expected_arrival_day = data.expected_arrival_day
+        if data.is_active is not None:
+            service.is_active = data.is_active
+
+        # NOTE: If bill service updates ever affect period projections (e.g. filtering
+        # issues by is_active), invalidate_user_projections(user_id) should be called
+        # here after persisting the change.
+        return await self.bill_repository.update_service(service)
 
     async def get_issues_by_period(self, user_id: uuid.UUID, period: str) -> list[BillIssue]:
         return await self.bill_repository.get_issues_by_user_and_period(user_id, period)

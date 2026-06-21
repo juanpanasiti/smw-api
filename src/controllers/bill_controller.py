@@ -1,5 +1,7 @@
 import uuid
 
+import structlog
+
 from src.core.redis import invalidate_user_projections
 from src.schemas.bill import (
     BillIssueCreateSchema,
@@ -7,9 +9,12 @@ from src.schemas.bill import (
     BillIssueResponseSchema,
     BillServiceCreateSchema,
     BillServiceResponseSchema,
+    BillServiceUpdateSchema,
 )
-from src.schemas.response import StandardResponse
+from src.schemas.response import ErrorDetail, StandardResponse
 from src.services.bill_service import BillServiceManager
+
+logger = structlog.get_logger()
 
 
 class BillController:
@@ -26,6 +31,24 @@ class BillController:
     ) -> StandardResponse[BillServiceResponseSchema]:
         service = await self.bill_service.create_service(user_id, data)
         return StandardResponse(success=True, data=BillServiceResponseSchema.model_validate(service))
+
+    async def update_service(
+        self, user_id: uuid.UUID, service_id: uuid.UUID, data: BillServiceUpdateSchema
+    ) -> StandardResponse[BillServiceResponseSchema]:
+        try:
+            service = await self.bill_service.update_service(user_id, service_id, data)
+            logger.info("bill_service_updated", user_id=str(user_id), service_id=str(service_id))
+            return StandardResponse(success=True, data=BillServiceResponseSchema.model_validate(service))
+        except ValueError as e:
+            if str(e) == "BILL_SERVICE_NOT_FOUND":
+                return StandardResponse(
+                    success=False,
+                    error=ErrorDetail(
+                        code="BILL_SERVICE_NOT_FOUND",
+                        message="The requested bill service does not exist or access is denied.",
+                    ),
+                )
+            raise
 
     async def get_issues_by_period(
         self, user_id: uuid.UUID, period: str

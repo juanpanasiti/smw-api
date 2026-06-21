@@ -29,6 +29,22 @@ async def get_accounts(
     return await controller.get_all(user_id)
 
 
+@router.get(
+    "/{account_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[AccountListItemSchema],
+)
+async def get_account(
+    account_id: uuid.UUID,
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+    controller: Annotated[AccountController, Depends(get_account_controller)],
+):
+    response, http_status = await controller.get_account(user_id, account_id)
+    if not response.success:
+        raise HTTPException(status_code=http_status, detail=response.model_dump())
+    return response
+
+
 @router.post(
     "/credit-cards",
     status_code=status.HTTP_201_CREATED,

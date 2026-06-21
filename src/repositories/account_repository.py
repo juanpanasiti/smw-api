@@ -22,7 +22,11 @@ class AccountRepository:
         return list(result.scalars().all())
 
     async def get_by_id(self, account_id: uuid.UUID) -> Account | None:
-        stmt = select(Account).where(Account.id == account_id)
+        stmt = (
+            select(Account)
+            .where(Account.id == account_id)
+            .options(selectin_polymorphic(Account, [CreditCard]))
+        )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 

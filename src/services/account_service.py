@@ -12,6 +12,14 @@ class AccountService:
     async def get_user_accounts(self, owner_id: uuid.UUID) -> list[Account]:
         return await self.account_repo.get_all_for_owner(owner_id)
 
+    async def get_account(self, owner_id: uuid.UUID, account_id: uuid.UUID) -> Account:
+        account = await self.account_repo.get_by_id(account_id)
+        if not account:
+            raise ValueError("ACCOUNT_NOT_FOUND")
+        if account.owner_id != owner_id:
+            raise ValueError("FORBIDDEN_ACCOUNT")
+        return account
+
     async def create_credit_card(self, owner_id: uuid.UUID, schema: CreditCardCreateSchema) -> CreditCard:
         # If this is an extension card, validate that the parent belongs to this user
         if schema.main_credit_card_id:

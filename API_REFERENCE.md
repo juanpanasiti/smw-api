@@ -23,6 +23,7 @@
   - [DELETE /categories/{category_id}](#delete-categoriescategory_id)
 - [Accounts](#accounts)
   - [GET /accounts/](#get-accounts)
+  - [GET /accounts/{account_id}](#get-accountsaccount_id)
   - [POST /accounts/credit-cards](#post-accountscredit-cards)
   - [PATCH /accounts/credit-cards/{account_id}](#patch-accountscredit-cardsaccount_id)
   - [DELETE /accounts/{account_id}](#delete-accountsaccount_id)
@@ -420,6 +421,44 @@ The `account_type` discriminator field determines the shape of each item:
 | `account`      | Standard bank account           |
 
 ---
+
+### GET /accounts/{account_id}
+
+Returns a specific account owned by the authenticated user.
+
+- **Auth required:** Yes
+- **Idempotency-Key required:** No
+
+#### Path Parameters
+
+| Parameter    | Type   | Description              |
+|--------------|--------|--------------------------|
+| `account_id` | `UUID` | The account to retrieve  |
+
+#### Response `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "a1b2c3d4-...",
+    "owner_id": "u1u2u3u4-...",
+    "alias": "Visa Gold",
+    "is_enabled": true,
+    "account_type": "credit_card",
+    "closing_day": 15,
+    "due_day": 5,
+    "limit": "50000.00",
+    "financing_limit": "10000.00",
+    "main_credit_card_id": null
+  },
+  "error": null
+}
+```
+
+---
+
+
 
 ### POST /accounts/credit-cards
 

@@ -231,18 +231,18 @@ CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 ### 9.2 Automated GitHub Actions Workflow
-* **CI Pipeline (`Pull Request` to `uat` / `main`):** Executes formatting/linting sweeps in milliseconds using `ruff`, typechecks structural signatures using `mypy`, and launches the full suite of asynchronous integration tests via `pytest`.
+* **CI Pipeline (`Pull Request` to `stage` / `main`):** Executes formatting/linting sweeps in milliseconds using `ruff`, typechecks structural signatures using `mypy`, and launches the full suite of asynchronous integration tests via `pytest`.
 * **Dev Integration Gate (`dev` branch):** Integration test suites are also executed in `dev` through a controlled manual or label-based trigger, enabling early full-flow validation without enforcing constant execution on every commit.
-* **CD Pipeline (`Push` to `uat`):** Rebuilds the highly optimized multi-stage production image, ships it over secure SSH channels to the cloud testing box, and re-initializes the instance using `docker compose up -d --build`.
+* **CD Pipeline (`Push` to `stage`):** Rebuilds the highly optimized multi-stage production image, ships it over secure SSH channels to the cloud testing box, and re-initializes the instance using `docker compose up -d --build`.
 
 ---
 
 ## 10. Repository Governance & Delivery Workflow
 * **Branching Strategy:**
     * `dev`: Active implementation branch for all feature work.
-    * `uat`: Pre-release validation and staging gate.
+    * `stage`: Pre-release validation and staging gate.
     * `main`: Production-ready stable releases only.
-* **Promotion Flow:** `dev` -> `uat` -> `main`.
+* **Promotion Flow:** `dev` -> `stage` -> `main`.
 * **Commit Standard:** All commits must follow the **Conventional Commits** specification.
 * **Implementation Rule:** Work is executed in atomic feature slices; each slice must include unit tests and corresponding documentation updates when applicable.
 * **Execution Rule:** A feature slice is not allowed to progress to the next slice until the current slice is approved and committed.

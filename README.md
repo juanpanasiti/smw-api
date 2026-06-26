@@ -362,7 +362,7 @@ smw-api/
 
 ## CI/CD
 
-The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every Pull Request to `dev`, `uat`, and `main`:
+The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every Pull Request to `dev`, `stage`, and `main`:
 
 1. **Lint** — `ruff check .`
 2. **Format check** — `ruff format --check .`

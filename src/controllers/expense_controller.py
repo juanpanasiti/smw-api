@@ -51,3 +51,8 @@ class ExpenseController:
         payment = await self.expense_service.update_payment_status(user_id, payment_id, data)
         await invalidate_user_projections(user_id)
         return StandardResponse(success=True, data=PaymentResponseSchema.model_validate(payment))
+
+    async def delete_expense(self, user_id: uuid.UUID, expense_id: uuid.UUID) -> StandardResponse[None]:
+        await self.expense_service.delete_expense(user_id, expense_id)
+        await invalidate_user_projections(user_id)
+        return StandardResponse(success=True, data=None)

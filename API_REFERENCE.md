@@ -741,6 +741,32 @@ Updates the status of a specific payment. Uses **optimistic locking** — the `v
 
 ---
 
+### DELETE /expenses/{expense_id}
+
+Permanently deletes an expense (purchase or subscription) owned by the authenticated user.
+Deleting an expense will cascade and automatically delete all associated installments (payments).
+
+- **Auth required:** Yes
+- **Idempotency-Key required:** Yes
+
+#### Path Parameters
+
+| Parameter    | Type   | Description           |
+|--------------|--------|-----------------------|
+| `expense_id` | `UUID` | The expense to delete |
+
+#### Response `204 No Content`
+
+Empty body on success.
+
+#### Error Codes
+
+| HTTP Status | `error.code` | Description                                          |
+|-------------|--------------|------------------------------------------------------|
+| `404`       | —            | Expense does not exist or belongs to another user    |
+
+---
+
 ## Bills
 
 Bills follow a **master-detail** pattern. A **Bill Service** is the recurring service definition (e.g. "Electricity"). A **Bill Issue** is a specific monthly invoice for that service.

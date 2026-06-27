@@ -107,3 +107,11 @@ class ExpenseService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Payment has been modified by another transaction. Please retry.",
             ) from e
+
+    async def delete_expense(self, user_id: uuid.UUID, expense_id: uuid.UUID) -> None:
+        expense = await self.expense_repository.get_by_id(expense_id)
+        if not expense:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found")
+
+        await self._verify_account_ownership(user_id, expense.account_id)
+        await self.expense_repository.delete(expense)

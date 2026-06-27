@@ -61,3 +61,7 @@ class ExpenseRepository:
         await self.session.commit()
         await self.session.refresh(payment)
         return payment
+
+    async def delete(self, expense: Expense) -> None:
+        await self.session.delete(expense)
+        await self.session.commit()

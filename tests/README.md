@@ -114,6 +114,16 @@ Unit tests use local `AsyncMock` fixtures for each repository dependency — no 
 
 ---
 
+### `test_expense_delete.py` — `ExpenseService` delete business logic
+
+| # | Test function | Scenario | Input data | Expected result |
+|---|---|---|---|---|
+| 1 | `test_delete_expense_success` | Delete an existing expense belonging to the requesting user | Valid expense and account owned by user | No exception; repo `delete` called once with the expense |
+| 2 | `test_delete_expense_not_found` | Attempt to delete an expense that does not exist | `get_by_id` returns `None` | `HTTPException` with status `404` raised |
+| 3 | `test_delete_expense_unauthorized` | Attempt to delete an expense owned by a different user | Expense's `account.owner_id` differs from `requesting_user_id` | `HTTPException` with status `404` raised |
+
+---
+
 ## Integration Tests (`tests/api/v1/`)
 
 > All integration tests run against a real PostgreSQL test database (`smw_api_test` on port `5433`).
@@ -189,3 +199,12 @@ Unit tests use local `AsyncMock` fixtures for each repository dependency — no 
 | # | Test function | Scenario | Input data | Expected result |
 |---|---|---|---|---|
 | 1 | `test_projection_end_to_end` | Full end-to-end flow: create card → register installment purchase → query monthly projection | Credit card with `limit=5000.00`; purchase of `amount=1200.00` split into 3 installments starting next month | Projection for the first installment month returns `total_expenses="400.00"` and a payments list with at least one entry where `amount="400.00"` (i.e., `1200 / 3`) |
+
+---
+
+### `test_expense_delete.py` — `DELETE /api/v1/expenses/{id}`
+
+| # | Test function | Scenario | Input data | Expected result |
+|---|---|---|---|---|
+| 1 | `test_delete_purchase_with_installments_ok` | Delete a purchase expense with auto-generated installments | Purchase created with 3 installments; `DELETE /api/v1/expenses/{id}` | `200` response; both the expense and its 3 payment installments are removed from the database via cascade. |
+| 2 | `test_delete_subscription_ok` | Delete a subscription expense | Subscription created (no pre-generated installments); `DELETE /api/v1/expenses/{id}` | `200` response; the subscription is removed from the database successfully. |

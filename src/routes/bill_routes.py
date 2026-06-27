@@ -121,3 +121,39 @@ async def pay_issue(
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
 ):
     return await controller.pay_issue(user_id, issue_id, data)
+
+
+@router.delete(
+    "/issues/{issue_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_issue(
+    issue_id: uuid.UUID,
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+    controller: Annotated[BillController, Depends(get_bill_controller)],
+    idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
+):
+    response = await controller.delete_issue(user_id, issue_id)
+    if not response.success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response.model_dump())
+
+
+@router.delete(
+    "/services/{service_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_service(
+    service_id: uuid.UUID,
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+    controller: Annotated[BillController, Depends(get_bill_controller)],
+    force: bool = Query(False, description="When true, deletes the service and all its associated issues atomically"),
+    idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
+):
+    response = await controller.delete_service(user_id, service_id, force)
+    if not response.success:
+        error_code = response.error.code if response.error else ""
+        if error_code == "BILL_SERVICE_NOT_FOUND":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response.model_dump())
+        if error_code == "BILL_SERVICE_HAS_ISSUES":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=response.model_dump())
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.model_dump())

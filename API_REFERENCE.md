@@ -36,9 +36,11 @@
   - [GET /bills/services](#get-billsservices)
   - [POST /bills/services](#post-billsservices)
   - [PATCH /bills/services/{service_id}](#patch-billsservicesservice_id)
+  - [DELETE /bills/services/{service_id}](#delete-billsservicesservice_id)
   - [GET /bills/issues](#get-billsissues)
   - [POST /bills/issues](#post-billsissues)
   - [PATCH /bills/issues/{issue_id}](#patch-billsissuesissue_id)
+  - [DELETE /bills/issues/{issue_id}](#delete-billsissuesissue_id)
   - [POST /bills/issues/{issue_id}/pay](#post-billsissuesissue_idpay)
 - [Projections](#projections)
   - [GET /projections/periods](#get-projectionperiods)
@@ -851,6 +853,40 @@ Returns the updated `BillServiceResponseSchema` wrapped in the standard envelope
 
 ---
 
+### DELETE /bills/services/{service_id}
+
+Permanently deletes a bill service owned by the authenticated user.
+
+By default, the request is **rejected with `409 Conflict`** if the service has any associated issues. Pass `?force=true` to delete the service **and all its issues atomically** in a single database transaction — if any part of the operation fails, nothing is deleted.
+
+- **Auth required:** Yes
+- **Idempotency-Key required:** Yes
+
+#### Path Parameters
+
+| Parameter    | Type   | Description                     |
+|--------------|--------|---------------------------------|
+| `service_id` | `UUID` | The bill service to delete      |
+
+#### Query Parameters
+
+| Parameter | Type      | Default  | Description                                                                 |
+|-----------|-----------|----------|-----------------------------------------------------------------------------|
+| `force`   | `boolean` | `false`  | When `true`, deletes the service and all its associated issues atomically   |
+
+#### Response `204 No Content`
+
+Empty body on success.
+
+#### Error Codes
+
+| HTTP Status | `error.code`               | Description                                                                      |
+|-------------|----------------------------|---------------------------------------------------------------------------------|
+| `404`       | `BILL_SERVICE_NOT_FOUND`   | Service does not exist or belongs to another user                                |
+| `409`       | `BILL_SERVICE_HAS_ISSUES`  | Service has associated issues; send `?force=true` to delete atomically           |
+
+---
+
 ### GET /bills/issues
 
 Returns all bill issues for a given period.
@@ -1001,6 +1037,31 @@ Marks a bill issue as paid by creating an associated expense linked to a specifi
 #### Response `200 OK`
 
 Returns the updated `BillIssueResponseSchema` with `status: "paid"` and the generated `expense_id`, wrapped in the standard envelope.
+
+---
+
+### DELETE /bills/issues/{issue_id}
+
+Permanently deletes a bill issue owned by the authenticated user.
+
+- **Auth required:** Yes
+- **Idempotency-Key required:** Yes
+
+#### Path Parameters
+
+| Parameter  | Type   | Description               |
+|------------|--------|---------------------------|
+| `issue_id` | `UUID` | The bill issue to delete  |
+
+#### Response `204 No Content`
+
+Empty body on success.
+
+#### Error Codes
+
+| HTTP Status | `error.code` | Description                                          |
+|-------------|--------------|------------------------------------------------------|
+| `404`       | —            | Issue does not exist or belongs to another user      |
 
 ---
 

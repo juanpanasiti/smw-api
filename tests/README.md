@@ -91,6 +91,20 @@ Unit tests use local `AsyncMock` fixtures for each repository dependency — no 
 
 ---
 
+### `test_bill_delete.py` — `BillServiceManager` delete business logic
+
+| # | Test function | Scenario | Input data | Expected result |
+|---|---|---|---|---|
+| 1 | `test_delete_issue_success` | Delete an existing issue belonging to the requesting user | `BillIssue` and `BillService` both owned by `user_id` | No exception; repo `delete_issue` called once with the issue |
+| 2 | `test_delete_issue_not_found` | Attempt to delete an issue that does not exist | `get_issue_by_id` returns `None` | `HTTPException` with status `404` raised |
+| 3 | `test_delete_issue_other_user` | Attempt to delete an issue owned by a different user | Issue's `bill_service.user_id` differs from `requesting_user_id` | `HTTPException` with status `404` raised (ownership leak prevented) |
+| 4 | `test_delete_service_no_issues_success` | Delete a service that has no associated issues | `get_issues_by_service` returns `[]` | No exception; repo `delete_service` called once |
+| 5 | `test_delete_service_with_issues_no_force` | Attempt to delete a service with issues without `force=True` | `get_issues_by_service` returns one `BillIssue`; `force=False` | `ValueError("BILL_SERVICE_HAS_ISSUES")` raised; `delete_service` never called |
+| 6 | `test_delete_service_with_issues_force` | Delete a service with issues using `force=True` | `force=True`; one linked `BillIssue` exists in repo mock | No exception; `get_issues_by_service` skipped; `delete_service` called once |
+| 7 | `test_delete_service_not_found` | Attempt to delete a non-existent service | `get_service_by_id` returns `None` | `ValueError("BILL_SERVICE_NOT_FOUND")` raised; `delete_service` never called |
+
+---
+
 ### `test_expense.py` — `ExpenseService` business logic
 
 | # | Test function | Scenario | Input data | Expected result |
@@ -142,6 +156,18 @@ Unit tests use local `AsyncMock` fixtures for each repository dependency — no 
 | 8 | `test_bill_issue_update_period_conflict_returns_409` | Target period already occupied by another issue of the same service | Two issues created for `2026-01` and `2026-02`; attempt to move the first to `2026-02` | `409` with error code `BILL_ISSUE_PERIOD_CONFLICT` |
 | 9 | `test_bill_issue_update_not_found_returns_404` | Update an issue that does not exist | Random UUID as issue ID | `404` |
 | 10 | `test_bill_issue_update_other_user_returns_404` | User B tries to update an issue owned by User A | User A creates category → service → issue; User B authenticates separately and sends PATCH on that issue ID | `404` (ownership leak prevented) |
+
+---
+
+### `test_bill_delete.py` — `DELETE /api/v1/bills/issues/{id}` and `DELETE /api/v1/bills/services/{id}`
+
+| # | Test function | Scenario | Input data | Expected result |
+|---|---|---|---|---|
+| 1 | `test_delete_issue_ok` | Delete an existing bill issue | Issue created for `period="2027-01"`; `DELETE /bills/issues/{id}` with `Idempotency-Key` | `204`; subsequent `GET /bills/issues?period=2027-01` no longer contains the deleted issue ID |
+| 2 | `test_delete_service_no_issues_ok` | Delete a service that has no associated issues | Service created (no issues); `DELETE /bills/services/{id}` | `204`; subsequent `GET /bills/services` no longer lists the service |
+| 3 | `test_delete_service_with_issues_no_force` | Attempt to delete a service with issues without `?force=true` | Service with one issue at `period="2027-02"`; `DELETE /bills/services/{id}` (no `force` param) | `409` with error code `BILL_SERVICE_HAS_ISSUES`; both service and issue remain in subsequent reads |
+| 4 | `test_delete_service_with_issues_force_ok` | Force-delete a service with multiple issues | Service with two issues at `period="2027-03"` and `2027-04"`; `DELETE /bills/services/{id}?force=true` | `204`; subsequent reads confirm service is gone and both issues are gone (cascade) |
+| 5 | `test_delete_service_force_fail_rollback` | Force-delete with a simulated mid-delete failure — atomicity verification | Service and issue exist; `BillRepository.delete_service` patched to raise `RuntimeError`; `DELETE /bills/services/{id}?force=true` | `RuntimeError` propagates to test caller (ASGI in-process mode); subsequent `GET /bills/services` and `GET /bills/issues` confirm both records are still present (no flush occurred before the exception) |
 
 ---
 

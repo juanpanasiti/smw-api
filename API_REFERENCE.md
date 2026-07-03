@@ -31,7 +31,9 @@
   - [GET /expenses/](#get-expenses)
   - [POST /expenses/purchase](#post-expensespurchase)
   - [POST /expenses/subscription](#post-expensessubscription)
+  - [POST /expenses/{expense_id}/payments](#post-expensesexpense_idpayments)
   - [PATCH /expenses/payments/{payment_id}](#patch-expensespaymentspayment_id)
+  - [DELETE /expenses/{expense_id}](#delete-expensesexpense_id)
 - [Bills](#bills)
   - [GET /bills/services](#get-billsservices)
   - [POST /bills/services](#post-billsservices)
@@ -566,7 +568,7 @@ Deletes an account owned by the authenticated user.
 
 ## Expenses & Payments
 
-Expenses use Single Table Inheritance. A **Purchase** is installment-based (generates N payments), while a **Subscription** is recurring (generates payments indefinitely). The list endpoint returns a discriminated union by `expense_type`.
+Expenses use Single Table Inheritance. A **Purchase** is installment-based (generates N payments upfront), while a **Subscription** is recurring — payments are created manually month by month via the `POST /expenses/{expense_id}/payments` endpoint. The list endpoint returns a discriminated union by `expense_type`.
 
 ### GET /expenses/
 
@@ -686,6 +688,74 @@ Same as [POST /expenses/purchase](#post-expensespurchase) **without** the `total
 #### Response `201 Created`
 
 Returns the created `SubscriptionResponseSchema` wrapped in the standard envelope.
+
+---
+
+### POST /expenses/{expense_id}/payments
+
+Creates a new payment for a subscription expense. Only expense types that support manual payment creation are accepted (currently only `subscription`). If the new payment is the most recent one chronologically, the subscription's `amount` field is automatically updated to reflect it.
+
+- **Auth required:** Yes
+- **Idempotency-Key required:** Yes
+
+#### Path Parameters
+
+| Parameter    | Type   | Description                              |
+|--------------|--------|------------------------------------------|
+| `expense_id` | `UUID` | The subscription expense to add a payment to |
+
+#### Request Body
+
+```json
+{
+  "amount": "18.99",
+  "no_installment": 7,
+  "period_month": 7,
+  "period_year": 2026,
+  "status": "unconfirmed",
+  "credit_card_code": ""
+}
+```
+
+| Field              | Type          | Constraints                                           |
+|--------------------|---------------|-------------------------------------------------------|
+| `amount`           | `Decimal`     | Required, > 0.00, up to 12 digits, 2 decimal places   |
+| `no_installment`   | `integer`     | Required, ≥ 1                                         |
+| `period_month`     | `integer`     | Required, 1–12                                        |
+| `period_year`      | `integer`     | Required, ≥ 2000                                      |
+| `status`           | `string`      | Optional, default `"unconfirmed"`                     |
+| `credit_card_code` | `string`      | Optional, default `""`                                |
+
+#### Response `201 Created`
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "p1p2p3p4-...",
+    "expense_id": "e1e2e3e4-...",
+    "amount": "18.99",
+    "no_installment": 7,
+    "period_month": 7,
+    "period_year": 2026,
+    "status": "unconfirmed",
+    "is_last_payment": false,
+    "credit_card_code": null,
+    "version_id": 1
+  },
+  "error": null
+}
+```
+
+> **Amount update:** If no later payment exists for this subscription (i.e., this is the most recent `period_year`/`period_month`), the subscription's `amount` is automatically updated to the new payment's `amount`.
+
+#### Error Codes
+
+| HTTP Status | `error.code`                              | Description                                                  |
+|-------------|-------------------------------------------|--------------------------------------------------------------|
+| `400`       | `EXPENSE_TYPE_DOES_NOT_SUPPORT_PAYMENTS`  | The expense is not a subscription (e.g. it is a purchase)    |
+| `404`       | —                                         | Expense does not exist or belongs to another user            |
+| `409`       | `PAYMENT_PERIOD_CONFLICT`                 | A payment for this expense and period already exists         |
 
 ---
 

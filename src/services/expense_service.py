@@ -2,12 +2,17 @@ import uuid
 
 from dateutil.relativedelta import relativedelta
 from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import StaleDataError
 
 from src.models.expense import Expense, Payment, Purchase, Subscription
 from src.repositories.account_repository import AccountRepository
 from src.repositories.expense_repository import ExpenseRepository
-from src.schemas.expense import PaymentUpdateSchema, PurchaseCreateSchema, SubscriptionCreateSchema
+from src.schemas.expense import PaymentUpdateSchema, PurchaseCreateSchema, SubscriptionCreateSchema, SubscriptionPaymentCreateSchema
+
+# Expense types that support manual payment creation.
+# Add new identifiers here when new expense types are introduced.
+EXPENSE_TYPES_ALLOWING_PAYMENT_CREATION: frozenset[str] = frozenset({"subscription"})
 
 
 class ExpenseService:
@@ -108,6 +113,59 @@ class ExpenseService:
                 detail="Payment has been modified by another transaction. Please retry.",
             ) from e
 
+    async def create_expense_payment(
+        self, user_id: uuid.UUID, expense_id: uuid.UUID, data: SubscriptionPaymentCreateSchema
+    ) -> Payment:
+        expense = await self.expense_repository.get_by_id(expense_id)
+        if not expense:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found")
+
+        await self._verify_account_ownership(user_id, expense.account_id)
+
+        if expense.expense_type not in EXPENSE_TYPES_ALLOWING_PAYMENT_CREATION:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "code": "EXPENSE_TYPE_DOES_NOT_SUPPORT_PAYMENTS",
+                    "message": f"Expense type '{expense.expense_type}' does not support manual payment creation.",
+                    "details": {"expense_type": expense.expense_type},
+                },
+            )
+
+        payment = Payment(
+            expense_id=expense_id,
+            amount=data.amount,
+            no_installment=data.no_installment,
+            period_month=data.period_month,
+            period_year=data.period_year,
+            status=data.status,
+            credit_card_code=data.credit_card_code or None,
+        )
+
+        try:
+            payment = await self.expense_repository.create_payment(payment)
+        except IntegrityError as e:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "code": "PAYMENT_PERIOD_CONFLICT",
+                    "message": "A payment for this expense and period already exists.",
+                    "details": {"period_month": data.period_month, "period_year": data.period_year},
+                },
+            ) from e
+
+        # Update expense.amount with the new payment amount only when there is no
+        # subsequent payment (i.e., the new payment is the most recent one).
+        latest_payment = await self.expense_repository.get_latest_payment_for_expense(expense_id)
+        new_period = (data.period_year, data.period_month)
+        latest_period = (latest_payment.period_year, latest_payment.period_month) if latest_payment else new_period
+
+        if new_period >= latest_period:
+            expense.amount = data.amount
+            await self.expense_repository.update_expense(expense)
+
+        return payment
+
     async def delete_expense(self, user_id: uuid.UUID, expense_id: uuid.UUID) -> None:
         expense = await self.expense_repository.get_by_id(expense_id)
         if not expense:
@@ -115,3 +173,4 @@ class ExpenseService:
 
         await self._verify_account_ownership(user_id, expense.account_id)
         await self.expense_repository.delete(expense)
+

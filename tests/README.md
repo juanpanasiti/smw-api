@@ -124,6 +124,18 @@ Unit tests use local `AsyncMock` fixtures for each repository dependency — no 
 
 ---
 
+### `test_expense_payment_creation.py` — `ExpenseService.create_expense_payment` business logic
+
+| # | Test function | Scenario | Input data | Expected result |
+|---|---|---|---|---|
+| 1 | `test_create_expense_payment_expense_not_found` | Expense ID does not exist in the database | Random `expense_id`; valid `SubscriptionPaymentCreateSchema` | `HTTPException` with status `404` raised |
+| 2 | `test_create_expense_payment_wrong_owner` | Expense exists but the account belongs to a different user | Valid subscription; `Account.owner_id` set to a different `user_id` | `HTTPException` with status `404` raised (ownership check via `_verify_account_ownership`) |
+| 3 | `test_create_expense_payment_unsupported_type` | Expense is a `purchase`, which does not support manual payment creation | Valid purchase expense owned by the requesting user; valid payment schema | `HTTPException` with status `400`; `detail.code == "EXPENSE_TYPE_DOES_NOT_SUPPORT_PAYMENTS"` |
+| 4 | `test_create_expense_payment_updates_subscription_amount` | New payment is the most recent one for the subscription | Subscription with `amount=15.00`; new payment for `2026-07` with `amount=18.99`; `get_latest_payment_for_expense` returns the newly created payment | Payment created successfully; `update_expense` called once; `subscription.amount` updated to `18.99` |
+| 5 | `test_create_expense_payment_does_not_update_amount_when_posterior_exists` | A later payment already exists for the subscription | New payment for `2026-05` with `amount=14.99`; latest payment in DB is for `2026-07` | Payment created successfully; `update_expense` NOT called; `subscription.amount` remains unchanged |
+
+
+
 ## Integration Tests (`tests/api/v1/`)
 
 > All integration tests run against a real PostgreSQL test database (`smw_api_test` on port `5433`).

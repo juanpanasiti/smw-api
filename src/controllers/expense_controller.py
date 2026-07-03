@@ -9,6 +9,7 @@ from src.schemas.expense import (
     PurchaseCreateSchema,
     PurchaseResponseSchema,
     SubscriptionCreateSchema,
+    SubscriptionPaymentCreateSchema,
     SubscriptionResponseSchema,
 )
 from src.schemas.response import StandardResponse
@@ -49,6 +50,13 @@ class ExpenseController:
         self, user_id: uuid.UUID, payment_id: uuid.UUID, data: PaymentUpdateSchema
     ) -> StandardResponse[PaymentResponseSchema]:
         payment = await self.expense_service.update_payment_status(user_id, payment_id, data)
+        await invalidate_user_projections(user_id)
+        return StandardResponse(success=True, data=PaymentResponseSchema.model_validate(payment))
+
+    async def create_expense_payment(
+        self, user_id: uuid.UUID, expense_id: uuid.UUID, data: SubscriptionPaymentCreateSchema
+    ) -> StandardResponse[PaymentResponseSchema]:
+        payment = await self.expense_service.create_expense_payment(user_id, expense_id, data)
         await invalidate_user_projections(user_id)
         return StandardResponse(success=True, data=PaymentResponseSchema.model_validate(payment))
 

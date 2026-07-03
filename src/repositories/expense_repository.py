@@ -52,8 +52,25 @@ class ExpenseRepository:
         self.session.add_all(payments)
         await self.session.commit()
 
+    async def create_payment(self, payment: Payment) -> Payment:
+        self.session.add(payment)
+        await self.session.commit()
+        await self.session.refresh(payment)
+        return payment
+
     async def get_payment_by_id(self, payment_id: uuid.UUID) -> Payment | None:
         stmt = select(Payment).where(Payment.id == payment_id)
+        result = await self.session.execute(stmt)
+        return result.scalars().first()
+
+    async def get_latest_payment_for_expense(self, expense_id: uuid.UUID) -> Payment | None:
+        """Return the Payment with the latest (period_year, period_month) for the given expense."""
+        stmt = (
+            select(Payment)
+            .where(Payment.expense_id == expense_id)
+            .order_by(Payment.period_year.desc(), Payment.period_month.desc())
+            .limit(1)
+        )
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
@@ -61,6 +78,11 @@ class ExpenseRepository:
         await self.session.commit()
         await self.session.refresh(payment)
         return payment
+
+    async def update_expense(self, expense: Expense) -> Expense:
+        await self.session.commit()
+        await self.session.refresh(expense)
+        return expense
 
     async def delete(self, expense: Expense) -> None:
         await self.session.delete(expense)

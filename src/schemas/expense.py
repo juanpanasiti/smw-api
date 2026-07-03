@@ -97,6 +97,15 @@ class PaymentResponseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class SubscriptionPaymentCreateSchema(BaseModel):
+    amount: Decimal = Field(..., gt=Decimal("0.00"), decimal_places=2, max_digits=12)
+    no_installment: int = Field(..., ge=1)
+    period_month: int = Field(..., ge=1, le=12)
+    period_year: int = Field(..., ge=2000)
+    status: str = Field(default="unconfirmed")
+    credit_card_code: str = Field(default="")
+
+
 class PaymentUpdateSchema(BaseModel):
     status: str
     version_id: int  # required for optimistic locking

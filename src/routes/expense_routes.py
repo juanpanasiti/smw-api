@@ -13,6 +13,7 @@ from src.schemas.expense import (
     PurchaseCreateSchema,
     PurchaseResponseSchema,
     SubscriptionCreateSchema,
+    SubscriptionPaymentCreateSchema,
     SubscriptionResponseSchema,
 )
 from src.schemas.response import StandardResponse
@@ -60,6 +61,21 @@ async def create_subscription(
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
 ):
     return await controller.create_subscription(user_id, data)
+
+
+@router.post(
+    "/{expense_id}/payments",
+    status_code=status.HTTP_201_CREATED,
+    response_model=StandardResponse[PaymentResponseSchema],
+)
+async def create_expense_payment(
+    expense_id: uuid.UUID,
+    data: SubscriptionPaymentCreateSchema,
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+    controller: Annotated[ExpenseController, Depends(get_expense_controller)],
+    idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
+):
+    return await controller.create_expense_payment(user_id, expense_id, data)
 
 
 @router.patch(

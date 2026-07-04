@@ -46,10 +46,19 @@ class ExpenseController:
         await invalidate_user_projections(user_id)
         return StandardResponse(success=True, data=SubscriptionResponseSchema.model_validate(expense))
 
-    async def update_payment_status(
+    async def update_payment(
         self, user_id: uuid.UUID, payment_id: uuid.UUID, data: PaymentUpdateSchema
     ) -> StandardResponse[PaymentResponseSchema]:
-        payment = await self.expense_service.update_payment_status(user_id, payment_id, data)
+        if all(v is None for v in (data.amount, data.period_month, data.period_year, data.status, data.credit_card_code)):
+            from fastapi import HTTPException, status as http_status
+            raise HTTPException(
+                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={
+                    "code": "NO_FIELDS_PROVIDED",
+                    "message": "At least one field must be provided for update.",
+                },
+            )
+        payment = await self.expense_service.update_payment(user_id, payment_id, data)
         await invalidate_user_projections(user_id)
         return StandardResponse(success=True, data=PaymentResponseSchema.model_validate(payment))
 

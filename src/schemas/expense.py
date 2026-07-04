@@ -107,5 +107,15 @@ class SubscriptionPaymentCreateSchema(BaseModel):
 
 
 class PaymentUpdateSchema(BaseModel):
-    status: str
+    """
+    Schema for updating a payment. All business fields are optional,
+    but at least one must be provided (enforced at the service layer).
+    version_id is always required for optimistic locking.
+    """
+
+    amount: Decimal | None = Field(None, gt=Decimal("0.00"), decimal_places=2, max_digits=12)
+    period_month: int | None = Field(None, ge=1, le=12)
+    period_year: int | None = Field(None, ge=2000)
+    status: str | None = None
+    credit_card_code: str | None = None
     version_id: int  # required for optimistic locking

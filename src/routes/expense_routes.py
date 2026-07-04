@@ -83,14 +83,14 @@ async def create_expense_payment(
     status_code=status.HTTP_200_OK,
     response_model=StandardResponse[PaymentResponseSchema],
 )
-async def update_payment_status(
+async def update_payment(
     payment_id: uuid.UUID,
     data: PaymentUpdateSchema,
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[ExpenseController, Depends(get_expense_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
 ):
-    return await controller.update_payment_status(user_id, payment_id, data)
+    return await controller.update_payment(user_id, payment_id, data)
 
 
 @router.delete(

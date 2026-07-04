@@ -134,7 +134,21 @@ Unit tests use local `AsyncMock` fixtures for each repository dependency — no 
 | 4 | `test_create_expense_payment_updates_subscription_amount` | New payment is the most recent one for the subscription | Subscription with `amount=15.00`; new payment for `2026-07` with `amount=18.99`; `get_latest_payment_for_expense` returns the newly created payment | Payment created successfully; `update_expense` called once; `subscription.amount` updated to `18.99` |
 | 5 | `test_create_expense_payment_does_not_update_amount_when_posterior_exists` | A later payment already exists for the subscription | New payment for `2026-05` with `amount=14.99`; latest payment in DB is for `2026-07` | Payment created successfully; `update_expense` NOT called; `subscription.amount` remains unchanged |
 
+---
 
+### `test_expense_payment_amount_update.py` — `ExpenseService.update_payment` amount redistribution logic
+
+| # | Test function | Scenario | Input data | Expected result |
+|---|---|---|---|---|
+| 1 | `test_update_payment_payment_not_found` | Target payment does not exist | Random `payment_id` | `HTTPException 404` |
+| 2 | `test_update_payment_wrong_owner` | Payment belongs to an account owned by a different user | Valid payment; `Account.owner_id` differs | `HTTPException 404` |
+| 3 | `test_update_payment_amount_not_allowed_for_subscription` | Try to update the amount of a Subscription payment (not allowed) | Payment belonging to a Subscription expense; new amount provided | `HTTPException 400` with code `EXPENSE_TYPE_DOES_NOT_SUPPORT_AMOUNT_UPDATE` |
+| 4 | `test_update_payment_optimistic_lock_conflict` | Version mismatch during update | Request `version_id` differs from DB `version_id` | `HTTPException 409` |
+| 5 | `test_update_payment_amount_exceeds_purchase_total` | New amount combined with locked siblings exceeds the purchase total | Purchase=100; locked_sum=70; new amount=40 | `HTTPException 422` with code `PAYMENT_AMOUNT_EXCEEDS_PURCHASE_TOTAL` |
+| 6 | `test_update_payment_amount_exact_redistribution` | Exact redistribution across remaining unconfirmed siblings | Purchase=1200/3 installments; change #1 from 400 to 500 | Remaining budget 700 distributed exactly as [350, 350] |
+| 7 | `test_update_payment_amount_non_divisible_redistribution` | Redistribution with remainder (decremental balance algorithm) | Purchase=100/3 installments; change #1 from 33.33 to 33.35 | Remaining budget 66.65 distributed as [33.32, 33.33] (due to banker's rounding) |
+| 8 | `test_update_payment_amount_with_locked_payments` | Locked payments (paid/confirmed) are excluded from the redistribution pool | Purchase=100/3; #3 is locked (33.33); change #1 to 40.00 | Remaining 26.67 assigned entirely to #2; #3 remains 33.33 |
+| 9 | `test_update_payment_same_amount_no_redistribution` | Request amount is identical to the current DB amount | `data.amount == payment.amount` | Scalar update applies immediately without triggering the redistribution logic array |
 
 ## Integration Tests (`tests/api/v1/`)
 
@@ -220,3 +234,12 @@ Unit tests use local `AsyncMock` fixtures for each repository dependency — no 
 |---|---|---|---|---|
 | 1 | `test_delete_purchase_with_installments_ok` | Delete a purchase expense with auto-generated installments | Purchase created with 3 installments; `DELETE /api/v1/expenses/{id}` | `200` response; both the expense and its 3 payment installments are removed from the database via cascade. |
 | 2 | `test_delete_subscription_ok` | Delete a subscription expense | Subscription created (no pre-generated installments); `DELETE /api/v1/expenses/{id}` | `200` response; the subscription is removed from the database successfully. |
+
+---
+
+### `test_purchase_creation.py` — `POST /api/v1/expenses/purchase`
+
+| # | Test function | Scenario | Input data | Expected result |
+|---|---|---|---|---|
+| 1 | `test_purchase_payments_sum_equals_total_exact_division` | Create a purchase with an amount that divides evenly across installments | `amount=1200.00`, `total_installments=3` → each installment is `400.00` | `201` response; DB contains exactly 3 `Payment` rows; `sum(payment.amount) == 1200.00`; all installments have `status="unconfirmed"` |
+| 2 | `test_purchase_payments_sum_equals_total_non_divisible_amount` | Create a purchase whose amount does NOT divide evenly, then modify an installment amount via API and re-verify the sum remains strictly equal to the total, finally verify locked redistribution and block empty redistributions | `amount=100.00`, `total_installments=3` → creates [33.33, 33.34, 33.33]. Then `PATCH` the first installment to `33.35`. Then `PATCH` the first to `confirmed`, and `PATCH` the second to `33.33`. Finally `PATCH` both to `paid` and attempt to change the third's amount | `201` creation response. After first PATCH, the remaining two installments redistribute to `33.32` and `33.33`. After confirming the first and modifying the second, the first remains locked (`33.35`) and the third absorbs the remainder (`33.32`). Finally, when attempting to change the third's amount with the other two locked, it returns `422` because there are no unconfirmed siblings available to absorb the remaining budget |

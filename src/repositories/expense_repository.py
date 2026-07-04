@@ -84,6 +84,23 @@ class ExpenseRepository:
         await self.session.refresh(expense)
         return expense
 
+    async def get_payments_by_expense_id(self, expense_id: uuid.UUID) -> list[Payment]:
+        """Return all payments for an expense ordered by no_installment ascending."""
+        stmt = (
+            select(Payment)
+            .where(Payment.expense_id == expense_id)
+            .order_by(Payment.no_installment)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def update_payments(self, payments: list[Payment]) -> list[Payment]:
+        """Commit a batch of already-mutated Payment ORM objects and refresh each one."""
+        await self.session.commit()
+        for payment in payments:
+            await self.session.refresh(payment)
+        return payments
+
     async def delete(self, expense: Expense) -> None:
         await self.session.delete(expense)
         await self.session.commit()

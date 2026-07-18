@@ -222,6 +222,45 @@ class ExpenseService:
                 detail="Payment has been modified by another transaction. Please retry.",
             ) from e
 
+    async def update_payment_status(
+        self, user_id: uuid.UUID, payment_id: uuid.UUID, data: PaymentUpdateSchema
+    ) -> Payment:
+        """
+        Update only the status field of a payment, enforcing optimistic locking.
+
+        Raises HTTP 404 if the payment or its parent expense is not found.
+        Raises HTTP 403/404 if the requesting user does not own the account.
+        Raises HTTP 409 if ``data.version_id`` does not match the stored ``version_id``
+        (optimistic locking conflict) or if a ``StaleDataError`` is raised by SQLAlchemy
+        during the database write.
+        """
+        payment = await self.expense_repository.get_payment_by_id(payment_id)
+        if not payment:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
+
+        expense = await self.expense_repository.get_by_id(payment.expense_id)
+        if not expense:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found")
+
+        await self._verify_account_ownership(user_id, expense.account_id)
+
+        if payment.version_id != data.version_id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Payment has been modified by another transaction. Please retry.",
+            )
+
+        if data.status is not None:
+            payment.status = data.status
+
+        try:
+            return await self.expense_repository.update_payment(payment)
+        except StaleDataError as e:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Payment has been modified by another transaction. Please retry.",
+            ) from e
+
     async def create_expense_payment(
         self, user_id: uuid.UUID, expense_id: uuid.UUID, data: SubscriptionPaymentCreateSchema
     ) -> Payment:

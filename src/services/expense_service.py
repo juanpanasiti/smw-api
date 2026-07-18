@@ -148,7 +148,7 @@ class ExpenseService:
 
             if remaining_budget < Decimal("0.00"):
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail={
                         "code": "PAYMENT_AMOUNT_EXCEEDS_PURCHASE_TOTAL",
                         "message": "The new amount combined with locked payments exceeds the purchase total.",
@@ -167,7 +167,7 @@ class ExpenseService:
 
             if not redistributable and remaining_budget != Decimal("0.00"):
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail={
                         "code": "PAYMENT_AMOUNT_EXCEEDS_PURCHASE_TOTAL",
                         "message": "No unconfirmed payments available to redistribute the remaining budget.",

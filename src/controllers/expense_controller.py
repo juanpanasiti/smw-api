@@ -52,7 +52,7 @@ class ExpenseController:
         if all(v is None for v in (data.amount, data.period_month, data.period_year, data.status, data.credit_card_code)):
             from fastapi import HTTPException, status as http_status
             raise HTTPException(
-                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=http_status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail={
                     "code": "NO_FIELDS_PROVIDED",
                     "message": "At least one field must be provided for update.",

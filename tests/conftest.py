@@ -9,15 +9,29 @@ import os
 import uuid
 from collections.abc import AsyncGenerator
 
+from dotenv import load_dotenv
+
+# Load .env so we can respect user's custom passwords/users
+load_dotenv()
+
+db_user = os.environ.get("POSTGRES_USER", "postgres")
+db_pass = os.environ.get("POSTGRES_PASSWORD", "postgres")
+db_server = os.environ.get("POSTGRES_SERVER", "localhost")
+db_port = os.environ.get("POSTGRES_TEST_PORT", "5433")
+db_name = os.environ.get("POSTGRES_TEST_DB", "smw_api_test")
+
+redis_host = os.environ.get("REDIS_HOST", "localhost")
+redis_port = os.environ.get("REDIS_TEST_PORT", "6380")
+
 # Set test env variables BEFORE any src module is imported,
 # so pydantic-settings picks them up on first initialization.
-os.environ["POSTGRES_USER"] = "postgres"
-os.environ["POSTGRES_PASSWORD"] = "postgres_test_password"
-os.environ["POSTGRES_DB"] = "smw_api_test"
-os.environ["POSTGRES_SERVER"] = "localhost"
-os.environ["POSTGRES_PORT"] = "5433"
-os.environ["REDIS_HOST"] = "localhost"
-os.environ["REDIS_PORT"] = "6380"
+os.environ["POSTGRES_USER"] = db_user
+os.environ["POSTGRES_PASSWORD"] = db_pass
+os.environ["POSTGRES_DB"] = db_name
+os.environ["POSTGRES_SERVER"] = db_server
+os.environ["POSTGRES_PORT"] = db_port
+os.environ["REDIS_HOST"] = redis_host
+os.environ["REDIS_PORT"] = redis_port
 
 import httpx  # noqa: E402
 import pytest_asyncio  # noqa: E402
@@ -27,7 +41,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine  # noqa: E4
 from src.core.database import Base, get_db_session  # noqa: E402
 from src.main import app  # noqa: E402
 
-DATABASE_TEST_URL = "postgresql+asyncpg://postgres:postgres_test_password@localhost:5433/smw_api_test"
+DATABASE_TEST_URL = f"postgresql+asyncpg://{db_user}:{db_pass}@{db_server}:{db_port}/{db_name}"
 
 
 def _run_sync(coro):

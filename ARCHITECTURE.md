@@ -199,9 +199,11 @@ A standalone Redis instance acts as our high-performance scaling barrier:
 * **Isolation Matrix:** Testing workflows run against a separate, independent database instance container (`postgres_test`).
 * **Transaction Controls:** Every individual test runs within an isolated transactional session block. Pytest issues an unconditional `ROLLBACK` during teardown, maintaining an untainted database state without dropping tables sequentially.
 * **Coverage Policy:** Unit test coverage minimum threshold is **80%**. Coverage reporting must include a dedicated configuration file that explicitly excludes non-actionable files (generated code, bootstrap files, and environment-specific wrappers) from threshold evaluation.
-* **Granular Layout:**
+* **Granular Layout & Specification Architecture:**
     * `tests/unit/`: Mirroring `src/` hierarchy to test isolated algorithmic domains (e.g., Subscription dynamic flight simulation).
-    * `tests/api/v1/`: Folder-by-Resource architecture dividing test coverage strictly across request scenarios (`test_bulk_status.py`, `test_create_purchase.py`).
+    * `tests/api/v1/`: Granular HTTP integration test scenario files matching 1-to-1 with Markdown specification documents in `docs/integration_tests/` (1 scenario = 1 `.py` file ↔ 1 `.md` file, e.g., `tests/api/v1/test_bill_delete_issue_ok.py` ↔ `docs/integration_tests/test_bill_delete_issue_ok.md`).
+    * `docs/integration_tests/`: Human- and AI-readable Markdown specifications detailing test metadata, endpoints, preconditions, JSON request bodies, execution steps, expected status codes, and edge case handling.
+    * **Language Policy:** All test files, code comments, docstrings, and specification documents must be strictly written in English.
 
 ---
 

@@ -256,7 +256,9 @@ The project has two test tiers:
 | Suite | Path | Description |
 |---|---|---|
 | **Unit** | `tests/unit/` | Isolated service logic tests using `AsyncMock` — no real DB required |
-| **Integration** | `tests/api/v1/` | Full E2E HTTP tests against a real PostgreSQL + Redis instance |
+| **Integration** | `tests/api/v1/` | Full E2E HTTP tests against PostgreSQL + Redis (specs in `docs/integration_tests/`) |
+
+> 📄 For the full test catalogue and 1-to-1 Markdown specifications, see **[tests/README.md](./tests/README.md)** and **[docs/integration_tests/](./docs/integration_tests/)**. All tests and specifications are written strictly in English.
 
 ### Run unit tests only (no Docker needed)
 

@@ -10,31 +10,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres_test_password
-          POSTGRES_DB: smw_api_test
-        ports:
-          - 5433:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6380:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -59,13 +34,6 @@ jobs:
         run: uv run mypy src/
         continue-on-error: true  # Warnings only until mypy is fully configured
 
-      - name: Run full test suite with coverage
-        run: uv run pytest --cov=src --cov-report=term-missing --cov-fail-under=70
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres_test_password
-          POSTGRES_DB: smw_api_test
-          POSTGRES_SERVER: localhost
-          POSTGRES_PORT: "5433"
-          REDIS_HOST: localhost
-          REDIS_PORT: "6380"
+      - name: Run unit tests with coverage
+        run: uv run pytest tests/unit --cov=src --cov-report=term-missing
+

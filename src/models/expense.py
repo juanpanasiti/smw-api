@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, CheckConstraint, Date, ForeignKey, Integer, SmallInteger, String, UniqueConstraint, text
@@ -30,7 +31,7 @@ class Expense(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     account_name: Mapped[str] = mapped_column(String(255), nullable=False)
     acquired_at: Mapped[date] = mapped_column(Date, nullable=False)
-    amount: Mapped[float] = mapped_column(NUMERIC(12, 2), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(NUMERIC(12, 2), nullable=False)
     expense_type: Mapped[str] = mapped_column(String(50), nullable=False)
     total_installments: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     first_payment_date: Mapped[date] = mapped_column(Date, nullable=False)
@@ -80,7 +81,7 @@ class Payment(Base):
     expense_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("expenses.id", ondelete="CASCADE"), nullable=False
     )
-    amount: Mapped[float] = mapped_column(NUMERIC(12, 2), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(NUMERIC(12, 2), nullable=False)
     no_installment: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     period_month: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     period_year: Mapped[int] = mapped_column(SmallInteger, nullable=False)

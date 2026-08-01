@@ -56,11 +56,11 @@ class AuthService:
     async def refresh_tokens(self, refresh_token: str) -> Token:
         try:
             payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-            token_type: str = payload.get("type")
+            token_type = payload.get("type")
             if token_type != "refresh":
                 raise ValueError("INVALID_TOKEN_TYPE")
-            user_id: str = payload.get("sub")
-            if user_id is None:
+            user_id = payload.get("sub")
+            if not isinstance(user_id, str):
                 raise ValueError("INVALID_TOKEN")
         except JWTError as err:
             raise ValueError("INVALID_TOKEN") from err

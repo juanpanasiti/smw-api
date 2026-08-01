@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, CheckConstraint, Date, ForeignKey, SmallInteger, String, UniqueConstraint, text
@@ -58,7 +59,7 @@ class BillIssue(Base):
         UUID(as_uuid=True), ForeignKey("bill_services.id", ondelete="CASCADE"), nullable=False
     )
     period: Mapped[str] = mapped_column(String(7), nullable=False)
-    amount: Mapped[float] = mapped_column(NUMERIC(12, 2), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(NUMERIC(12, 2), nullable=False)
     due_date: Mapped[date] = mapped_column(Date, nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="unpaid")
     expense_id: Mapped[uuid.UUID | None] = mapped_column(

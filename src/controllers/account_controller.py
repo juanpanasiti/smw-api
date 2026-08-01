@@ -23,7 +23,9 @@ _ERROR_MAP = {
 }
 
 
-def _make_error_response(code: str) -> StandardResponse:
+from typing import Any
+
+def _make_error_response(code: str) -> tuple[StandardResponse[Any], int]:
     http_status, message = _ERROR_MAP.get(code, (400, "An error occurred."))
     return StandardResponse(success=False, error=ErrorDetail(code=code, message=message)), http_status
 
@@ -48,7 +50,7 @@ class AccountController:
         try:
             account = await self.account_service.get_account(owner_id, account_id)
             if isinstance(account, CreditCard):
-                data = CreditCardResponseSchema.model_validate(account)
+                data: AccountListItemSchema = CreditCardResponseSchema.model_validate(account)
             else:
                 data = AccountResponseSchema.model_validate(account)
             return StandardResponse(success=True, data=data), 200

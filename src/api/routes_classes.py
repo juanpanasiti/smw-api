@@ -1,5 +1,6 @@
 import json
 from collections.abc import Callable
+from typing import Any, Coroutine
 
 import structlog
 from fastapi import Request, Response
@@ -12,7 +13,7 @@ logger = structlog.get_logger()
 
 
 class IdempotentRoute(APIRoute):
-    def get_route_handler(self) -> Callable:
+    def get_route_handler(self) -> Callable[[Request], Coroutine[Any, Any, Response]]:
         original_route_handler = super().get_route_handler()
 
         async def custom_route_handler(request: Request) -> Response:
@@ -47,7 +48,7 @@ class IdempotentRoute(APIRoute):
             # We only cache successful responses (or specific expected ones)
             if 200 <= response.status_code < 300 and hasattr(response, "body"):
                 try:
-                    content = json.loads(response.body)
+                    content = json.loads(bytes(response.body))
                     await redis_client.set(
                         cache_key,
                         json.dumps({"status_code": response.status_code, "content": content}),

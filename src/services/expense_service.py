@@ -140,6 +140,7 @@ class ExpenseService:
 
             all_payments = await self.expense_repository.get_payments_by_expense_id(payment.expense_id)
             new_amount = data.amount
+            assert new_amount is not None
 
             locked_sum: Decimal = sum(
                 (

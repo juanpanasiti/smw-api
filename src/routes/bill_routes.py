@@ -1,3 +1,4 @@
+from typing import Any
 import uuid
 from typing import Annotated
 
@@ -28,7 +29,7 @@ router = APIRouter(prefix="/bills", tags=["bills"], route_class=IdempotentRoute)
 async def get_services(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[BillController, Depends(get_bill_controller)],
-):
+) -> Any:
     return await controller.get_services(user_id)
 
 
@@ -42,7 +43,7 @@ async def create_service(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[BillController, Depends(get_bill_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     return await controller.create_service(user_id, data)
 
 
@@ -57,10 +58,10 @@ async def update_service(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[BillController, Depends(get_bill_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     response = await controller.update_service(user_id, service_id, data)
     if not response.success:
-        if response.error.code == "BILL_SERVICE_NOT_FOUND":
+        if response.error and response.error.code == "BILL_SERVICE_NOT_FOUND":
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response.model_dump())
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.model_dump())
     return response
@@ -72,10 +73,10 @@ async def update_service(
     response_model=StandardResponse[list[BillIssueResponseSchema]],
 )
 async def get_issues_by_period(
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+    controller: Annotated[BillController, Depends(get_bill_controller)],
     period: str = Query(..., pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])$", description="Período YYYY-MM"),
-    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)] = ...,
-    controller: Annotated[BillController, Depends(get_bill_controller)] = ...,
-):
+) -> Any:
     return await controller.get_issues_by_period(user_id, period)
 
 
@@ -89,7 +90,7 @@ async def create_issue(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[BillController, Depends(get_bill_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     return await controller.create_issue(user_id, data)
 
 
@@ -104,7 +105,7 @@ async def update_issue(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[BillController, Depends(get_bill_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID to guarantee idempotency"),  # noqa: ARG001
-):
+) -> Any:
     return await controller.update_issue(user_id, issue_id, data)
 
 
@@ -119,7 +120,7 @@ async def pay_issue(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[BillController, Depends(get_bill_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     return await controller.pay_issue(user_id, issue_id, data)
 
 
@@ -132,7 +133,7 @@ async def delete_issue(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[BillController, Depends(get_bill_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> None:
     response = await controller.delete_issue(user_id, issue_id)
     if not response.success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response.model_dump())
@@ -148,7 +149,7 @@ async def delete_service(
     controller: Annotated[BillController, Depends(get_bill_controller)],
     force: bool = Query(False, description="When true, deletes the service and all its associated issues atomically"),
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> None:
     response = await controller.delete_service(user_id, service_id, force)
     if not response.success:
         error_code = response.error.code if response.error else ""

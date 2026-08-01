@@ -24,7 +24,7 @@ class ExpenseController:
         self, user_id: uuid.UUID, account_id: uuid.UUID | None = None, is_active: bool | None = None
     ) -> StandardResponse[list[ExpenseListItemSchema]]:
         expenses = await self.expense_service.get_expenses(user_id, account_id, is_active)
-        data = []
+        data: list[ExpenseListItemSchema] = []
         for exp in expenses:
             if isinstance(exp, Purchase):
                 data.append(PurchaseResponseSchema.model_validate(exp))

@@ -1,3 +1,4 @@
+from typing import Any
 import uuid
 from typing import Annotated
 
@@ -25,7 +26,7 @@ router = APIRouter(prefix="/accounts", tags=["accounts"], route_class=Idempotent
 async def get_accounts(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[AccountController, Depends(get_account_controller)],
-):
+) -> Any:
     return await controller.get_all(user_id)
 
 
@@ -38,7 +39,7 @@ async def get_account(
     account_id: uuid.UUID,
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[AccountController, Depends(get_account_controller)],
-):
+) -> Any:
     response, http_status = await controller.get_account(user_id, account_id)
     if not response.success:
         raise HTTPException(status_code=http_status, detail=response.model_dump())
@@ -55,7 +56,7 @@ async def create_credit_card(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[AccountController, Depends(get_account_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key"),  # noqa: ARG001
-):
+) -> Any:
     response, http_status = await controller.create_credit_card(user_id, schema)
     if not response.success:
         raise HTTPException(status_code=http_status, detail=response.model_dump())
@@ -73,7 +74,7 @@ async def update_credit_card(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[AccountController, Depends(get_account_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key"),  # noqa: ARG001
-):
+) -> Any:
     response, http_status = await controller.update_credit_card(user_id, account_id, schema)
     if not response.success:
         raise HTTPException(status_code=http_status, detail=response.model_dump())
@@ -90,7 +91,7 @@ async def delete_account(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[AccountController, Depends(get_account_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key"),  # noqa: ARG001
-):
+) -> Any:
     response, http_status = await controller.delete_account(user_id, account_id)
     if not response.success:
         raise HTTPException(status_code=http_status, detail=response.model_dump())

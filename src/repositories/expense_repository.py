@@ -7,11 +7,14 @@ from sqlalchemy.orm import selectin_polymorphic
 from src.models.expense import Expense, Payment, Purchase, Subscription
 
 
+from typing import TypeVar
+T = TypeVar("T", bound=Expense)
+
 class ExpenseRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create(self, expense: Expense) -> Expense:
+    async def create(self, expense: T) -> T:
         self.session.add(expense)
         await self.session.commit()
         await self.session.refresh(expense)
@@ -79,7 +82,7 @@ class ExpenseRepository:
         await self.session.refresh(payment)
         return payment
 
-    async def update_expense(self, expense: Expense) -> Expense:
+    async def update_expense(self, expense: T) -> T:
         await self.session.commit()
         await self.session.refresh(expense)
         return expense

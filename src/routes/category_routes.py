@@ -1,3 +1,4 @@
+from typing import Any
 import uuid
 from typing import Annotated
 
@@ -20,7 +21,7 @@ router = APIRouter(prefix="/categories", tags=["categories"], route_class=Idempo
 async def get_categories(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[MovementCategoryController, Depends(get_category_controller)],
-):
+) -> Any:
     return await controller.get_all(user_id)
 
 
@@ -30,7 +31,7 @@ async def create_category(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[MovementCategoryController, Depends(get_category_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     return await controller.create(user_id, schema)
 
 
@@ -43,12 +44,12 @@ async def update_category(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[MovementCategoryController, Depends(get_category_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     response = await controller.update(user_id, category_id, schema)
     if not response.success:
-        if response.error.code == "CATEGORY_NOT_FOUND":
+        if response.error and response.error.code == "CATEGORY_NOT_FOUND":
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response.model_dump())
-        if response.error.code == "FORBIDDEN_OPERATION":
+        if response.error and response.error.code == "FORBIDDEN_OPERATION":
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=response.model_dump())
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.model_dump())
     return response
@@ -60,12 +61,12 @@ async def delete_category(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[MovementCategoryController, Depends(get_category_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     response = await controller.delete(user_id, category_id)
     if not response.success:
-        if response.error.code == "CATEGORY_NOT_FOUND":
+        if response.error and response.error.code == "CATEGORY_NOT_FOUND":
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response.model_dump())
-        if response.error.code == "FORBIDDEN_OPERATION":
+        if response.error and response.error.code == "FORBIDDEN_OPERATION":
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=response.model_dump())
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.model_dump())
     return response

@@ -1,3 +1,4 @@
+from typing import Any
 import uuid
 from typing import Annotated
 
@@ -31,7 +32,7 @@ async def get_expenses(
     controller: Annotated[ExpenseController, Depends(get_expense_controller)],
     account_id: uuid.UUID | None = Query(None, description="Filtrar por ID de cuenta"),
     is_active: bool | None = Query(None, description="Filtrar por estado activo/inactivo (True/False)"),
-):
+) -> Any:
     return await controller.get_expenses(user_id, account_id, is_active)
 
 
@@ -45,7 +46,7 @@ async def create_purchase(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[ExpenseController, Depends(get_expense_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     return await controller.create_purchase(user_id, data)
 
 
@@ -59,7 +60,7 @@ async def create_subscription(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[ExpenseController, Depends(get_expense_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     return await controller.create_subscription(user_id, data)
 
 
@@ -74,7 +75,7 @@ async def create_expense_payment(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[ExpenseController, Depends(get_expense_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     return await controller.create_expense_payment(user_id, expense_id, data)
 
 
@@ -89,7 +90,7 @@ async def update_payment(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[ExpenseController, Depends(get_expense_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     return await controller.update_payment(user_id, payment_id, data)
 
 
@@ -103,5 +104,5 @@ async def delete_expense(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
     controller: Annotated[ExpenseController, Depends(get_expense_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     return await controller.delete_expense(user_id, expense_id)

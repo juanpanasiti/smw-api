@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, ForeignKey, SmallInteger, String, text
@@ -69,8 +70,8 @@ class CreditCard(Account):
     )
     closing_day: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     due_day: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    limit: Mapped[float] = mapped_column(NUMERIC(12, 2), nullable=False)
-    financing_limit: Mapped[float] = mapped_column(NUMERIC(12, 2), nullable=False)
+    limit: Mapped[Decimal] = mapped_column(NUMERIC(12, 2), nullable=False)
+    financing_limit: Mapped[Decimal] = mapped_column(NUMERIC(12, 2), nullable=False)
 
     __mapper_args__ = {
         "polymorphic_identity": "credit_card",

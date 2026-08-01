@@ -57,6 +57,7 @@ class ProjectionController:
         projections = []
         for period in periods:
             res = await self.get_period_projection(user_id, period)
-            projections.append(res.data)
+            if res.data is not None:
+                projections.append(res.data)
 
         return StandardResponse(success=True, data=projections)

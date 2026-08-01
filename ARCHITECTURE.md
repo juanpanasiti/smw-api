@@ -199,9 +199,11 @@ A standalone Redis instance acts as our high-performance scaling barrier:
 * **Isolation Matrix:** Testing workflows run against a separate, independent database instance container (`postgres_test`).
 * **Transaction Controls:** Every individual test runs within an isolated transactional session block. Pytest issues an unconditional `ROLLBACK` during teardown, maintaining an untainted database state without dropping tables sequentially.
 * **Coverage Policy:** Unit test coverage minimum threshold is **80%**. Coverage reporting must include a dedicated configuration file that explicitly excludes non-actionable files (generated code, bootstrap files, and environment-specific wrappers) from threshold evaluation.
-* **Granular Layout:**
+* **Granular Layout & Specification Architecture:**
     * `tests/unit/`: Mirroring `src/` hierarchy to test isolated algorithmic domains (e.g., Subscription dynamic flight simulation).
-    * `tests/api/v1/`: Folder-by-Resource architecture dividing test coverage strictly across request scenarios (`test_bulk_status.py`, `test_create_purchase.py`).
+    * `tests/api/v1/`: Granular HTTP integration test scenario files matching 1-to-1 with Markdown specification documents in `docs/integration_tests/` (1 scenario = 1 `.py` file ↔ 1 `.md` file, e.g., `tests/api/v1/test_bill_delete_issue_ok.py` ↔ `docs/integration_tests/test_bill_delete_issue_ok.md`).
+    * `docs/integration_tests/`: Human- and AI-readable Markdown specifications detailing test metadata, endpoints, preconditions, JSON request bodies, execution steps, expected status codes, and edge case handling.
+    * **Language Policy:** All test files, code comments, docstrings, and specification documents must be strictly written in English.
 
 ---
 
@@ -231,18 +233,18 @@ CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 ### 9.2 Automated GitHub Actions Workflow
-* **CI Pipeline (`Pull Request` to `uat` / `main`):** Executes formatting/linting sweeps in milliseconds using `ruff`, typechecks structural signatures using `mypy`, and launches the full suite of asynchronous integration tests via `pytest`.
+* **CI Pipeline (`Pull Request` to `stage` / `main`):** Executes formatting/linting sweeps in milliseconds using `ruff`, typechecks structural signatures using `mypy`, and launches the full suite of asynchronous integration tests via `pytest`.
 * **Dev Integration Gate (`dev` branch):** Integration test suites are also executed in `dev` through a controlled manual or label-based trigger, enabling early full-flow validation without enforcing constant execution on every commit.
-* **CD Pipeline (`Push` to `uat`):** Rebuilds the highly optimized multi-stage production image, ships it over secure SSH channels to the cloud testing box, and re-initializes the instance using `docker compose up -d --build`.
+* **CD Pipeline (`Push` to `stage`):** Rebuilds the highly optimized multi-stage production image, ships it over secure SSH channels to the cloud testing box, and re-initializes the instance using `docker compose up -d --build`.
 
 ---
 
 ## 10. Repository Governance & Delivery Workflow
 * **Branching Strategy:**
     * `dev`: Active implementation branch for all feature work.
-    * `uat`: Pre-release validation and staging gate.
+    * `stage`: Pre-release validation and staging gate.
     * `main`: Production-ready stable releases only.
-* **Promotion Flow:** `dev` -> `uat` -> `main`.
+* **Promotion Flow:** `dev` -> `stage` -> `main`.
 * **Commit Standard:** All commits must follow the **Conventional Commits** specification.
 * **Implementation Rule:** Work is executed in atomic feature slices; each slice must include unit tests and corresponding documentation updates when applicable.
 * **Execution Rule:** A feature slice is not allowed to progress to the next slice until the current slice is approved and committed.

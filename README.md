@@ -256,7 +256,9 @@ The project has two test tiers:
 | Suite | Path | Description |
 |---|---|---|
 | **Unit** | `tests/unit/` | Isolated service logic tests using `AsyncMock` — no real DB required |
-| **Integration** | `tests/api/v1/` | Full E2E HTTP tests against a real PostgreSQL + Redis instance |
+| **Integration** | `tests/api/v1/` | Full E2E HTTP tests against PostgreSQL + Redis (specs in `docs/integration_tests/`) |
+
+> 📄 For the full test catalogue and 1-to-1 Markdown specifications, see **[tests/README.md](./tests/README.md)** and **[docs/integration_tests/](./docs/integration_tests/)**. All tests and specifications are written strictly in English.
 
 ### Run unit tests only (no Docker needed)
 
@@ -282,6 +284,14 @@ The integration tests automatically:
 - Create all database tables before the session.
 - Wrap each test in a **transaction that is rolled back** after completion — the database is never permanently mutated.
 - Override the FastAPI dependency for `db_session` to use the test connection.
+
+### Pre-push CI Verification
+
+To run all CI checks locally (dependency sync, ruff lint, ruff format check, mypy type check, unit tests) before creating a PR or pushing to GitHub:
+
+```bash
+./check_ci.sh
+```
 
 ### Linting and formatting
 
@@ -362,7 +372,7 @@ smw-api/
 
 ## CI/CD
 
-The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every Pull Request to `dev`, `uat`, and `main`:
+The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every Pull Request to `dev`, `stage`, and `main`:
 
 1. **Lint** — `ruff check .`
 2. **Format check** — `ruff format --check .`

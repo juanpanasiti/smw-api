@@ -46,8 +46,8 @@ def get_current_user_id(token: Annotated[str, Depends(oauth2_scheme)]) -> uuid.U
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        if user_id is None:
+        user_id = payload.get("sub")
+        if not isinstance(user_id, str):
             raise credentials_exception
         return uuid.UUID(user_id)
     except JWTError as e:

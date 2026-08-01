@@ -1,6 +1,6 @@
 import uuid
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Path, Query, status
 
@@ -31,7 +31,7 @@ async def get_multiple_projections(
         pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])$",
         description="Período inicial YYYY-MM",
     ),
-):
+) -> Any:
     return await controller.get_multiple_projections(user_id, start_period, limit)
 
 
@@ -41,8 +41,8 @@ async def get_multiple_projections(
     response_model=StandardResponse[PeriodProjectionSchema],
 )
 async def get_period_projection(
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+    controller: Annotated[ProjectionController, Depends(get_projection_controller)],
     period: str = Path(..., pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])$", description="Período YYYY-MM"),
-    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)] = ...,
-    controller: Annotated[ProjectionController, Depends(get_projection_controller)] = ...,
-):
+) -> Any:
     return await controller.get_period_projection(user_id, period)

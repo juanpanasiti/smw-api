@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -17,7 +17,7 @@ async def register(
     schema: UserCreateSchema,
     controller: Annotated[AuthController, Depends(get_auth_controller)],
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="UUID para garantizar idempotencia"),  # noqa: ARG001
-):
+) -> Any:
     response = await controller.register(schema)
     if not response.success:
         # Standardize HTTP status based on business logic errors
@@ -29,7 +29,7 @@ async def register(
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     controller: Annotated[AuthController, Depends(get_auth_controller)],
-):
+) -> Any:
     schema = UserLoginSchema(email=form_data.username, password=form_data.password)
     response = await controller.login(schema)
     if not response.success:
@@ -41,7 +41,7 @@ async def login(
 async def refresh(
     schema: RefreshTokenRequest,
     controller: Annotated[AuthController, Depends(get_auth_controller)],
-):
+) -> Any:
     response = await controller.refresh_tokens(schema)
     if not response.success:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=response.model_dump())

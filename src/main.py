@@ -34,5 +34,5 @@ app.include_router(projection_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/health", tags=["health"])
-async def health_check():
+async def health_check() -> dict[str, str]:
     return {"status": "ok"}

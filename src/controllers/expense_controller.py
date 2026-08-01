@@ -9,6 +9,7 @@ from src.schemas.expense import (
     PurchaseCreateSchema,
     PurchaseResponseSchema,
     SubscriptionCreateSchema,
+    SubscriptionPaymentCreateSchema,
     SubscriptionResponseSchema,
 )
 from src.schemas.response import StandardResponse
@@ -23,7 +24,7 @@ class ExpenseController:
         self, user_id: uuid.UUID, account_id: uuid.UUID | None = None, is_active: bool | None = None
     ) -> StandardResponse[list[ExpenseListItemSchema]]:
         expenses = await self.expense_service.get_expenses(user_id, account_id, is_active)
-        data = []
+        data: list[ExpenseListItemSchema] = []
         for exp in expenses:
             if isinstance(exp, Purchase):
                 data.append(PurchaseResponseSchema.model_validate(exp))
@@ -45,9 +46,34 @@ class ExpenseController:
         await invalidate_user_projections(user_id)
         return StandardResponse(success=True, data=SubscriptionResponseSchema.model_validate(expense))
 
-    async def update_payment_status(
+    async def update_payment(
         self, user_id: uuid.UUID, payment_id: uuid.UUID, data: PaymentUpdateSchema
     ) -> StandardResponse[PaymentResponseSchema]:
-        payment = await self.expense_service.update_payment_status(user_id, payment_id, data)
+        if all(
+            v is None for v in (data.amount, data.period_month, data.period_year, data.status, data.credit_card_code)
+        ):
+            from fastapi import HTTPException
+            from fastapi import status as http_status
+
+            raise HTTPException(
+                status_code=http_status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail={
+                    "code": "NO_FIELDS_PROVIDED",
+                    "message": "At least one field must be provided for update.",
+                },
+            )
+        payment = await self.expense_service.update_payment(user_id, payment_id, data)
         await invalidate_user_projections(user_id)
         return StandardResponse(success=True, data=PaymentResponseSchema.model_validate(payment))
+
+    async def create_expense_payment(
+        self, user_id: uuid.UUID, expense_id: uuid.UUID, data: SubscriptionPaymentCreateSchema
+    ) -> StandardResponse[PaymentResponseSchema]:
+        payment = await self.expense_service.create_expense_payment(user_id, expense_id, data)
+        await invalidate_user_projections(user_id)
+        return StandardResponse(success=True, data=PaymentResponseSchema.model_validate(payment))
+
+    async def delete_expense(self, user_id: uuid.UUID, expense_id: uuid.UUID) -> StandardResponse[None]:
+        await self.expense_service.delete_expense(user_id, expense_id)
+        await invalidate_user_projections(user_id)
+        return StandardResponse(success=True, data=None)

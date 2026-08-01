@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
@@ -26,7 +28,7 @@ class BillServiceUpdateSchema(BaseModel):
     is_active: bool | None = None
 
     @model_validator(mode="after")
-    def check_at_least_one_field(self) -> "BillServiceUpdateSchema":
+    def check_at_least_one_field(self) -> BillServiceUpdateSchema:
         if all(
             v is None
             for v in (self.category_id, self.name, self.service_type, self.expected_arrival_day, self.is_active)
@@ -66,7 +68,7 @@ class BillIssueUpdateSchema(BaseModel):
     status: str | None = Field(None, pattern=r"^(unpaid|paid|cancelled)$")
 
     @model_validator(mode="after")
-    def check_at_least_one_field(self) -> "BillIssueUpdateSchema":
+    def check_at_least_one_field(self) -> BillIssueUpdateSchema:
         if all(v is None for v in (self.amount, self.due_date, self.period, self.status)):
             raise ValueError("At least one field must be provided for update")
         return self

@@ -1,8 +1,8 @@
-from typing import Any, Generic, TypeVar
+from __future__ import annotations
+
+from typing import Any
 
 from pydantic import BaseModel
-
-T = TypeVar("T")
 
 
 class ErrorDetail(BaseModel):
@@ -11,7 +11,7 @@ class ErrorDetail(BaseModel):
     details: dict[str, Any] = {}
 
 
-class StandardResponse(BaseModel, Generic[T]):
+class StandardResponse[T](BaseModel):
     success: bool
     data: T | None = None
     error: ErrorDetail | None = None

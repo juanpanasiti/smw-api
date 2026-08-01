@@ -1,10 +1,8 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+import bcrypt
 from jose import jwt
-from passlib.context import CryptContext
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # You should ideally read these from settings in a real environment
 SECRET_KEY = "dummy-secret-key-for-development"
@@ -14,11 +12,18 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    password_bytes = plain_password.encode("utf-8")[:72]
+    hashed_bytes = hashed_password.encode("utf-8")
+    try:
+        return bcrypt.checkpw(password_bytes, hashed_bytes)
+    except ValueError:
+        return False
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    password_bytes = password.encode("utf-8")[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password_bytes, salt).decode("utf-8")
 
 
 def create_access_token(subject: str | Any) -> str:

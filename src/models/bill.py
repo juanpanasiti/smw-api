@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, CheckConstraint, Date, ForeignKey, SmallInteger, String, UniqueConstraint, text
@@ -39,9 +42,9 @@ class BillService(Base):
     __table_args__ = (CheckConstraint("expected_arrival_day BETWEEN 1 AND 31", name="chk_bill_expected_arrival_day"),)
 
     # Relationships
-    user: Mapped["User"] = relationship("User")
-    category: Mapped["MovementCategory"] = relationship("MovementCategory")
-    issues: Mapped[list["BillIssue"]] = relationship(
+    user: Mapped[User] = relationship("User")
+    category: Mapped[MovementCategory] = relationship("MovementCategory")
+    issues: Mapped[list[BillIssue]] = relationship(
         "BillIssue", back_populates="bill_service", cascade="all, delete-orphan"
     )
 
@@ -56,7 +59,7 @@ class BillIssue(Base):
         UUID(as_uuid=True), ForeignKey("bill_services.id", ondelete="CASCADE"), nullable=False
     )
     period: Mapped[str] = mapped_column(String(7), nullable=False)
-    amount: Mapped[float] = mapped_column(NUMERIC(12, 2), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(NUMERIC(12, 2), nullable=False)
     due_date: Mapped[date] = mapped_column(Date, nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="unpaid")
     expense_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -75,5 +78,5 @@ class BillIssue(Base):
     )
 
     # Relationships
-    bill_service: Mapped["BillService"] = relationship("BillService", back_populates="issues")
-    expense: Mapped["Expense | None"] = relationship("Expense")
+    bill_service: Mapped[BillService] = relationship("BillService", back_populates="issues")
+    expense: Mapped[Expense | None] = relationship("Expense")

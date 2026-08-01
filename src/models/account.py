@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, ForeignKey, SmallInteger, String, text
@@ -48,8 +51,8 @@ class Account(Base):
     }
 
     # Relationships
-    owner: Mapped["User"] = relationship("User", back_populates="accounts")
-    expenses: Mapped[list["Expense"]] = relationship("Expense", back_populates="account", cascade="all, delete-orphan")
+    owner: Mapped[User] = relationship("User", back_populates="accounts")
+    expenses: Mapped[list[Expense]] = relationship("Expense", back_populates="account", cascade="all, delete-orphan")
 
 
 class CreditCard(Account):
@@ -67,20 +70,20 @@ class CreditCard(Account):
     )
     closing_day: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     due_day: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    limit: Mapped[float] = mapped_column(NUMERIC(12, 2), nullable=False)
-    financing_limit: Mapped[float] = mapped_column(NUMERIC(12, 2), nullable=False)
+    limit: Mapped[Decimal] = mapped_column(NUMERIC(12, 2), nullable=False)
+    financing_limit: Mapped[Decimal] = mapped_column(NUMERIC(12, 2), nullable=False)
 
     __mapper_args__ = {
         "polymorphic_identity": "credit_card",
     }
 
     # Self-referential: card extensions — remote_side points to the "one" side (parent)
-    extensions: Mapped[list["CreditCard"]] = relationship(
+    extensions: Mapped[list[CreditCard]] = relationship(
         "CreditCard",
         foreign_keys=[main_credit_card_id],
         back_populates="main_card",
     )
-    main_card: Mapped["CreditCard | None"] = relationship(
+    main_card: Mapped[CreditCard | None] = relationship(
         "CreditCard",
         foreign_keys=[main_credit_card_id],
         back_populates="extensions",

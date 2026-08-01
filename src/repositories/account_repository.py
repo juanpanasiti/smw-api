@@ -1,10 +1,13 @@
 import uuid
+from typing import TypeVar
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectin_polymorphic
 
 from src.models.account import Account, CreditCard
+
+T = TypeVar("T", bound=Account)
 
 
 class AccountRepository:
@@ -22,11 +25,7 @@ class AccountRepository:
         return list(result.scalars().all())
 
     async def get_by_id(self, account_id: uuid.UUID) -> Account | None:
-        stmt = (
-            select(Account)
-            .where(Account.id == account_id)
-            .options(selectin_polymorphic(Account, [CreditCard]))
-        )
+        stmt = select(Account).where(Account.id == account_id).options(selectin_polymorphic(Account, [CreditCard]))
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -35,7 +34,7 @@ class AccountRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def create(self, account: Account) -> Account:
+    async def create(self, account: T) -> T:
         self.session.add(account)
         await self.session.flush()
         return account

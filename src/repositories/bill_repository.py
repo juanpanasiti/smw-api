@@ -84,3 +84,26 @@ class BillRepository:
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_issues_by_service(self, service_id: uuid.UUID) -> list[BillIssue]:
+        """Return all issues associated with a bill service.
+
+        Used to enforce the has-issues guard before a non-forced service deletion.
+        """
+        stmt = select(BillIssue).where(BillIssue.bill_service_id == service_id)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def delete_issue(self, issue: BillIssue) -> None:
+        """Permanently delete a single bill issue."""
+        await self.session.delete(issue)
+        await self.session.flush()
+
+    async def delete_service(self, service: BillService) -> None:
+        """Permanently delete a bill service.
+
+        Child BillIssue rows are removed automatically via the
+        'cascade=all, delete-orphan' relationship defined on BillService.
+        """
+        await self.session.delete(service)
+        await self.session.flush()

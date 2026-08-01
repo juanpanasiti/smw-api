@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -30,10 +32,10 @@ class User(Base):
     )
 
     # Relationships
-    profile: Mapped["Profile"] = relationship(
+    profile: Mapped[Profile] = relationship(
         "Profile", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
-    categories: Mapped[list["MovementCategory"]] = relationship(
+    categories: Mapped[list[MovementCategory]] = relationship(
         "MovementCategory", back_populates="user", cascade="all, delete-orphan"
     )
-    accounts: Mapped[list["Account"]] = relationship("Account", back_populates="owner", cascade="all, delete-orphan")
+    accounts: Mapped[list[Account]] = relationship("Account", back_populates="owner", cascade="all, delete-orphan")

@@ -5,7 +5,13 @@ from fastapi import HTTPException, status
 
 from src.models.bill import BillIssue, BillService
 from src.repositories.bill_repository import BillRepository
-from src.schemas.bill import BillIssueCreateSchema, BillIssuePaySchema, BillIssueUpdateSchema, BillServiceCreateSchema, BillServiceUpdateSchema
+from src.schemas.bill import (
+    BillIssueCreateSchema,
+    BillIssuePaySchema,
+    BillIssueUpdateSchema,
+    BillServiceCreateSchema,
+    BillServiceUpdateSchema,
+)
 from src.schemas.expense import PurchaseCreateSchema
 from src.services.expense_service import ExpenseService
 
@@ -141,3 +147,36 @@ class BillServiceManager:
         issue.status = "paid"
 
         return await self.bill_repository.update_issue(issue)
+
+    async def delete_issue(self, user_id: uuid.UUID, issue_id: uuid.UUID) -> None:
+        """Delete a bill issue, verifying ownership before removal."""
+        issue = await self.bill_repository.get_issue_by_id(issue_id)
+        if not issue or issue.bill_service.user_id != user_id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bill issue not found or access denied")
+
+        await self.bill_repository.delete_issue(issue)
+
+    async def delete_service(self, user_id: uuid.UUID, service_id: uuid.UUID, *, force: bool = False) -> None:
+        """Delete a bill service, verifying ownership before removal.
+
+        If the service has associated issues and ``force`` is ``False``, a
+        ``ValueError`` is raised so the caller can return an appropriate error
+        response without deleting anything.
+
+        When ``force`` is ``True``, the service and all its issues are deleted
+        atomically: the 'cascade=all, delete-orphan' relationship on
+        ``BillService.issues`` guarantees that child rows are removed within the
+        same flush.  If the flush fails for any reason, the enclosing transaction
+        is rolled back automatically by the session lifecycle, leaving both the
+        service and its issues intact.
+        """
+        service = await self.bill_repository.get_service_by_id(service_id)
+        if not service or service.user_id != user_id:
+            raise ValueError("BILL_SERVICE_NOT_FOUND")
+
+        if not force:
+            linked_issues = await self.bill_repository.get_issues_by_service(service_id)
+            if linked_issues:
+                raise ValueError("BILL_SERVICE_HAS_ISSUES")
+
+        await self.bill_repository.delete_service(service)

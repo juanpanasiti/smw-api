@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -32,5 +34,5 @@ class MovementCategory(Base):
     )
 
     # Relationships
-    user: Mapped["User | None"] = relationship("User", back_populates="categories")
-    expenses: Mapped[list["Expense"]] = relationship("Expense", back_populates="category")
+    user: Mapped[User | None] = relationship("User", back_populates="categories")
+    expenses: Mapped[list[Expense]] = relationship("Expense", back_populates="category")

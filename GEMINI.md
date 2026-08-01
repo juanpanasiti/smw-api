@@ -11,9 +11,11 @@ This configuration document serves as the absolute source of truth for AI develo
     1.  Never assume scope elements or inject unapproved framework packages.
     2.  Prioritize asynchronous database executions utilizing SQLAlchemy `AsyncSession`.
     3.  All monetary processing must exclusively utilize Python's `decimal.Decimal` class. Never use `float`.
-    4. All the code and comments must be in English, regardless of the developer's native language, to maintain consistency and accessibility for all contributors.
+    4. All the code, comments, docstrings, and documentation files must be in English, regardless of the developer's native language, to maintain consistency and accessibility for all contributors.
     5. For each code modification, analyze whether the documentation in [README.md](file:///home/juan/Projects/PROJECT%20SMW/smw-api/README.md), [ARCHITECTURE.md](file:///home/juan/Projects/PROJECT%20SMW/smw-api/ARCHITECTURE.md), and [API_REFERENCE.md](file:///home/juan/Projects/PROJECT%20SMW/smw-api/API_REFERENCE.md) needs to be updated to ensure it remains current, and update them if necessary.
     6. Whenever any test file under the `tests/` directory is **added**, **modified**, or **deleted**, the [tests/README.md](file:///home/juan/Projects/PROJECT%20SMW/smw-api/tests/README.md) file **must** be updated accordingly. Each entry in that file must document: the **scenario** exercised by the test, the **input data** it starts from, and the **expected result**. This file is the single source of truth for the test suite catalogue and must never fall out of sync with the actual test code.
+    7. Every integration test scenario under `tests/api/v1/` **must** reside in its own isolated Python test file and **must** have a corresponding 1-to-1 markdown specification document in `docs/integration_tests/` matching its exact filename (1 scenario = 1 `.py` file ↔ 1 `.md` file, e.g., `tests/api/v1/test_bill_delete_issue_ok.py` ↔ `docs/integration_tests/test_bill_delete_issue_ok.md`). Each specification document must include: YAML metadata (test ID, target spec path, type, tags), description/purpose, preconditions & request payloads, step-by-step execution sequence, expected results & assertions, and edge cases/errors.
+    8. All test files, docstrings, code comments, and specification documents in `docs/integration_tests/` **must** be strictly written in **English**.
 
 ---
 

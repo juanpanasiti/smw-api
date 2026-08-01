@@ -31,14 +31,18 @@
   - [GET /expenses/](#get-expenses)
   - [POST /expenses/purchase](#post-expensespurchase)
   - [POST /expenses/subscription](#post-expensessubscription)
+  - [POST /expenses/{expense_id}/payments](#post-expensesexpense_idpayments)
   - [PATCH /expenses/payments/{payment_id}](#patch-expensespaymentspayment_id)
+  - [DELETE /expenses/{expense_id}](#delete-expensesexpense_id)
 - [Bills](#bills)
   - [GET /bills/services](#get-billsservices)
   - [POST /bills/services](#post-billsservices)
   - [PATCH /bills/services/{service_id}](#patch-billsservicesservice_id)
+  - [DELETE /bills/services/{service_id}](#delete-billsservicesservice_id)
   - [GET /bills/issues](#get-billsissues)
   - [POST /bills/issues](#post-billsissues)
   - [PATCH /bills/issues/{issue_id}](#patch-billsissuesissue_id)
+  - [DELETE /bills/issues/{issue_id}](#delete-billsissuesissue_id)
   - [POST /bills/issues/{issue_id}/pay](#post-billsissuesissue_idpay)
 - [Projections](#projections)
   - [GET /projections/periods](#get-projectionperiods)
@@ -564,7 +568,7 @@ Deletes an account owned by the authenticated user.
 
 ## Expenses & Payments
 
-Expenses use Single Table Inheritance. A **Purchase** is installment-based (generates N payments), while a **Subscription** is recurring (generates payments indefinitely). The list endpoint returns a discriminated union by `expense_type`.
+Expenses use Single Table Inheritance. A **Purchase** is installment-based (generates N payments upfront), while a **Subscription** is recurring — payments are created manually month by month via the `POST /expenses/{expense_id}/payments` endpoint. The list endpoint returns a discriminated union by `expense_type`.
 
 ### GET /expenses/
 
@@ -687,6 +691,74 @@ Returns the created `SubscriptionResponseSchema` wrapped in the standard envelop
 
 ---
 
+### POST /expenses/{expense_id}/payments
+
+Creates a new payment for a subscription expense. Only expense types that support manual payment creation are accepted (currently only `subscription`). If the new payment is the most recent one chronologically, the subscription's `amount` field is automatically updated to reflect it.
+
+- **Auth required:** Yes
+- **Idempotency-Key required:** Yes
+
+#### Path Parameters
+
+| Parameter    | Type   | Description                              |
+|--------------|--------|------------------------------------------|
+| `expense_id` | `UUID` | The subscription expense to add a payment to |
+
+#### Request Body
+
+```json
+{
+  "amount": "18.99",
+  "no_installment": 7,
+  "period_month": 7,
+  "period_year": 2026,
+  "status": "unconfirmed",
+  "credit_card_code": ""
+}
+```
+
+| Field              | Type          | Constraints                                           |
+|--------------------|---------------|-------------------------------------------------------|
+| `amount`           | `Decimal`     | Required, > 0.00, up to 12 digits, 2 decimal places   |
+| `no_installment`   | `integer`     | Required, ≥ 1                                         |
+| `period_month`     | `integer`     | Required, 1–12                                        |
+| `period_year`      | `integer`     | Required, ≥ 2000                                      |
+| `status`           | `string`      | Optional, default `"unconfirmed"`                     |
+| `credit_card_code` | `string`      | Optional, default `""`                                |
+
+#### Response `201 Created`
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "p1p2p3p4-...",
+    "expense_id": "e1e2e3e4-...",
+    "amount": "18.99",
+    "no_installment": 7,
+    "period_month": 7,
+    "period_year": 2026,
+    "status": "unconfirmed",
+    "is_last_payment": false,
+    "credit_card_code": null,
+    "version_id": 1
+  },
+  "error": null
+}
+```
+
+> **Amount update:** If no later payment exists for this subscription (i.e., this is the most recent `period_year`/`period_month`), the subscription's `amount` is automatically updated to the new payment's `amount`.
+
+#### Error Codes
+
+| HTTP Status | `error.code`                              | Description                                                  |
+|-------------|-------------------------------------------|--------------------------------------------------------------|
+| `400`       | `EXPENSE_TYPE_DOES_NOT_SUPPORT_PAYMENTS`  | The expense is not a subscription (e.g. it is a purchase)    |
+| `404`       | —                                         | Expense does not exist or belongs to another user            |
+| `409`       | `PAYMENT_PERIOD_CONFLICT`                 | A payment for this expense and period already exists         |
+
+---
+
 ### PATCH /expenses/payments/{payment_id}
 
 Updates the status of a specific payment. Uses **optimistic locking** — the `version_id` of the current payment record must be provided to prevent concurrent update conflicts.
@@ -736,6 +808,32 @@ Updates the status of a specific payment. Uses **optimistic locking** — the `v
 ```
 
 > **Optimistic locking:** If the record was modified by another request between your read and this update, a `409 Conflict` is returned. Retry by fetching the latest `version_id` and resubmitting.
+
+---
+
+### DELETE /expenses/{expense_id}
+
+Permanently deletes an expense (purchase or subscription) owned by the authenticated user.
+Deleting an expense will cascade and automatically delete all associated installments (payments).
+
+- **Auth required:** Yes
+- **Idempotency-Key required:** Yes
+
+#### Path Parameters
+
+| Parameter    | Type   | Description           |
+|--------------|--------|-----------------------|
+| `expense_id` | `UUID` | The expense to delete |
+
+#### Response `204 No Content`
+
+Empty body on success.
+
+#### Error Codes
+
+| HTTP Status | `error.code` | Description                                          |
+|-------------|--------------|------------------------------------------------------|
+| `404`       | —            | Expense does not exist or belongs to another user    |
 
 ---
 
@@ -848,6 +946,40 @@ Returns the updated `BillServiceResponseSchema` wrapped in the standard envelope
 | HTTP Status | `error.code`             | Description                                                  |
 |-------------|--------------------------|--------------------------------------------------------------|
 | `404`       | `BILL_SERVICE_NOT_FOUND` | Service does not exist or belongs to another user            |
+
+---
+
+### DELETE /bills/services/{service_id}
+
+Permanently deletes a bill service owned by the authenticated user.
+
+By default, the request is **rejected with `409 Conflict`** if the service has any associated issues. Pass `?force=true` to delete the service **and all its issues atomically** in a single database transaction — if any part of the operation fails, nothing is deleted.
+
+- **Auth required:** Yes
+- **Idempotency-Key required:** Yes
+
+#### Path Parameters
+
+| Parameter    | Type   | Description                     |
+|--------------|--------|---------------------------------|
+| `service_id` | `UUID` | The bill service to delete      |
+
+#### Query Parameters
+
+| Parameter | Type      | Default  | Description                                                                 |
+|-----------|-----------|----------|-----------------------------------------------------------------------------|
+| `force`   | `boolean` | `false`  | When `true`, deletes the service and all its associated issues atomically   |
+
+#### Response `204 No Content`
+
+Empty body on success.
+
+#### Error Codes
+
+| HTTP Status | `error.code`               | Description                                                                      |
+|-------------|----------------------------|---------------------------------------------------------------------------------|
+| `404`       | `BILL_SERVICE_NOT_FOUND`   | Service does not exist or belongs to another user                                |
+| `409`       | `BILL_SERVICE_HAS_ISSUES`  | Service has associated issues; send `?force=true` to delete atomically           |
 
 ---
 
@@ -1001,6 +1133,31 @@ Marks a bill issue as paid by creating an associated expense linked to a specifi
 #### Response `200 OK`
 
 Returns the updated `BillIssueResponseSchema` with `status: "paid"` and the generated `expense_id`, wrapped in the standard envelope.
+
+---
+
+### DELETE /bills/issues/{issue_id}
+
+Permanently deletes a bill issue owned by the authenticated user.
+
+- **Auth required:** Yes
+- **Idempotency-Key required:** Yes
+
+#### Path Parameters
+
+| Parameter  | Type   | Description               |
+|------------|--------|---------------------------|
+| `issue_id` | `UUID` | The bill issue to delete  |
+
+#### Response `204 No Content`
+
+Empty body on success.
+
+#### Error Codes
+
+| HTTP Status | `error.code` | Description                                          |
+|-------------|--------------|------------------------------------------------------|
+| `404`       | —            | Issue does not exist or belongs to another user      |
 
 ---
 

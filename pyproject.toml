@@ -26,23 +26,24 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
 ]
 
 dependencies = [
-    "fastapi==0.137.1",
-    "uvicorn[standard]==0.49.0",
+    "fastapi==0.139.2",
+    "uvicorn[standard]==0.51.0",
     "sqlalchemy==2.0.51",
-    "alembic==1.18.4",
-    "asyncpg==0.30.0",
+    "alembic==1.18.5",
+    "asyncpg==0.31.0",
     "pydantic[email]==2.13.4",
-    "pydantic-settings==2.14.1",
-    "redis==8.0.0",
+    "pydantic-settings==2.14.2",
+    "redis==8.0.1",
     "structlog==26.1.0",
     "python-jose[cryptography]==3.5.0",
-    "passlib[bcrypt]==1.7.4",
-    "bcrypt==4.0.1",
+
+    "bcrypt==5.0.0",
     "python-multipart==0.0.32",
     "pytz==2026.2",
     "python-dateutil>=2.9.0.post0",
@@ -50,26 +51,32 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "ruff==0.15.17",
-    "mypy==2.1.0",
-    "pytest==9.1.0",
+    "ruff==0.15.22",
+    "mypy==2.3.0",
+    "pytest==9.1.1",
     "pytest-asyncio==1.4.0",
     "pytest-cov==7.1.0",
     "httpx==0.28.1",
-    "faker==40.23.0",
+    "faker==40.31.0",
     "factory-boy==3.3.3",
 ]
 
 test = [
-    "pytest==9.1.0",
+    "pytest==9.1.1",
     "pytest-asyncio==1.4.0",
     "pytest-cov==7.1.0",
     "httpx==0.28.1",
 ]
 
+[dependency-groups]
+dev = [
+    "types-python-dateutil>=2.9.0.20260716",
+    "types-python-jose>=3.5.0.20260408",
+]
+
 [tool.ruff]
 line-length = 120
-target-version = "py311"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [
@@ -93,7 +100,7 @@ ignore = [
 known-first-party = ["src"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
@@ -127,6 +134,9 @@ markers = [
     "unit: unit tests for isolated components",
     "integration: integration tests for full flows",
     "asyncio: async test marker",
+]
+filterwarnings = [
+    "ignore:'crypt' is deprecated and slated for removal in Python 3.13:DeprecationWarning",
 ]
 
 [tool.coverage.run]

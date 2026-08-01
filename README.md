@@ -285,6 +285,14 @@ The integration tests automatically:
 - Wrap each test in a **transaction that is rolled back** after completion — the database is never permanently mutated.
 - Override the FastAPI dependency for `db_session` to use the test connection.
 
+### Pre-push CI Verification
+
+To run all CI checks locally (dependency sync, ruff lint, ruff format check, mypy type check, unit tests) before creating a PR or pushing to GitHub:
+
+```bash
+./check_ci.sh
+```
+
 ### Linting and formatting
 
 ```bash

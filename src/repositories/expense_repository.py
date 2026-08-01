@@ -9,6 +9,7 @@ from src.models.expense import Expense, Payment, Purchase, Subscription
 
 T = TypeVar("T", bound=Expense)
 
+
 class ExpenseRepository:
     def __init__(self, session: AsyncSession):
         self.session = session

@@ -52,9 +52,9 @@ class Expense(Base):
     }
 
     # Relationships
-    account: Mapped["Account"] = relationship("Account", back_populates="expenses")
-    category: Mapped["MovementCategory | None"] = relationship("MovementCategory", back_populates="expenses")
-    payments: Mapped[list["Payment"]] = relationship("Payment", back_populates="expense", cascade="all, delete-orphan")
+    account: Mapped[Account] = relationship("Account", back_populates="expenses")
+    category: Mapped[MovementCategory | None] = relationship("MovementCategory", back_populates="expenses")
+    payments: Mapped[list[Payment]] = relationship("Payment", back_populates="expense", cascade="all, delete-orphan")
 
 
 class Purchase(Expense):
@@ -105,4 +105,4 @@ class Payment(Base):
     }
 
     # Relationships
-    expense: Mapped["Expense"] = relationship("Expense", back_populates="payments")
+    expense: Mapped[Expense] = relationship("Expense", back_populates="payments")

@@ -8,7 +8,9 @@ import asyncio
 import os
 import uuid
 from collections.abc import AsyncGenerator
+from unittest.mock import AsyncMock
 
+import pytest
 from dotenv import load_dotenv
 
 # Load .env so we can respect user's custom passwords/users
@@ -73,7 +75,7 @@ _run_sync(_create_tables())
 
 
 @pytest_asyncio.fixture
-async def db_session() -> AsyncGenerator[AsyncSession, None]:
+async def db_session() -> AsyncGenerator[AsyncSession]:
     engine = create_async_engine(DATABASE_TEST_URL, echo=False)
     connection = await engine.connect()
     transaction = await connection.begin()
@@ -88,7 +90,7 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest_asyncio.fixture
-async def client(db_session: AsyncSession) -> AsyncGenerator[httpx.AsyncClient, None]:
+async def client(db_session: AsyncSession) -> AsyncGenerator[httpx.AsyncClient]:
     async def override_get_db():
         yield db_session
 
@@ -132,9 +134,6 @@ async def auth_headers(client: httpx.AsyncClient) -> dict[str, str]:
     token = login_res.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
-
-import pytest
-from unittest.mock import AsyncMock
 
 @pytest.fixture(autouse=True)
 def mock_redis_globally(monkeypatch):

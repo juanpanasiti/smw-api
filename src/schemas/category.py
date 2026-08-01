@@ -15,7 +15,7 @@ class MovementCategoryUpdateSchema(BaseModel):
     is_income: bool | None = None
 
     @model_validator(mode="after")
-    def check_at_least_one_field(self) -> "MovementCategoryUpdateSchema":
+    def check_at_least_one_field(self) -> MovementCategoryUpdateSchema:
         if self.name is None and self.description is None and self.is_income is None:
             raise ValueError("At least one field must be provided for update")
         return self

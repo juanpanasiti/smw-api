@@ -33,7 +33,7 @@ def user_id() -> uuid.UUID:
 
 
 @pytest.fixture
-def account_id(user_id: uuid.UUID) -> uuid.UUID:
+def account_id(_: uuid.UUID) -> uuid.UUID:
     return uuid.uuid4()
 
 

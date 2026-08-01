@@ -9,7 +9,12 @@ from sqlalchemy.orm.exc import StaleDataError
 from src.models.expense import Expense, Payment, Purchase, Subscription
 from src.repositories.account_repository import AccountRepository
 from src.repositories.expense_repository import ExpenseRepository
-from src.schemas.expense import PaymentUpdateSchema, PurchaseCreateSchema, SubscriptionCreateSchema, SubscriptionPaymentCreateSchema
+from src.schemas.expense import (
+    PaymentUpdateSchema,
+    PurchaseCreateSchema,
+    SubscriptionCreateSchema,
+    SubscriptionPaymentCreateSchema,
+)
 
 # Expense types that support manual payment creation.
 # Add new identifiers here when new expense types are introduced.

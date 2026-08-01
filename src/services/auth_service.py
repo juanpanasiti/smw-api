@@ -1,6 +1,15 @@
 import uuid
+
 from jose import JWTError, jwt
-from src.core.security import ALGORITHM, SECRET_KEY, create_access_token, create_refresh_token, get_password_hash, verify_password
+
+from src.core.security import (
+    ALGORITHM,
+    SECRET_KEY,
+    create_access_token,
+    create_refresh_token,
+    get_password_hash,
+    verify_password,
+)
 from src.models.profile import Profile
 from src.models.user import User
 from src.repositories.user_repository import UserRepository
@@ -53,8 +62,8 @@ class AuthService:
             user_id: str = payload.get("sub")
             if user_id is None:
                 raise ValueError("INVALID_TOKEN")
-        except JWTError:
-            raise ValueError("INVALID_TOKEN")
+        except JWTError as err:
+            raise ValueError("INVALID_TOKEN") from err
 
         user = await self.user_repo.get_by_id(uuid.UUID(user_id))
         if not user:

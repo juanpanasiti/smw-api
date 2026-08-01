@@ -5,7 +5,13 @@ from fastapi import HTTPException, status
 
 from src.models.bill import BillIssue, BillService
 from src.repositories.bill_repository import BillRepository
-from src.schemas.bill import BillIssueCreateSchema, BillIssuePaySchema, BillIssueUpdateSchema, BillServiceCreateSchema, BillServiceUpdateSchema
+from src.schemas.bill import (
+    BillIssueCreateSchema,
+    BillIssuePaySchema,
+    BillIssueUpdateSchema,
+    BillServiceCreateSchema,
+    BillServiceUpdateSchema,
+)
 from src.schemas.expense import PurchaseCreateSchema
 from src.services.expense_service import ExpenseService
 

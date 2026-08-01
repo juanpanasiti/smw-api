@@ -39,9 +39,9 @@ class BillService(Base):
     __table_args__ = (CheckConstraint("expected_arrival_day BETWEEN 1 AND 31", name="chk_bill_expected_arrival_day"),)
 
     # Relationships
-    user: Mapped["User"] = relationship("User")
-    category: Mapped["MovementCategory"] = relationship("MovementCategory")
-    issues: Mapped[list["BillIssue"]] = relationship(
+    user: Mapped[User] = relationship("User")
+    category: Mapped[MovementCategory] = relationship("MovementCategory")
+    issues: Mapped[list[BillIssue]] = relationship(
         "BillIssue", back_populates="bill_service", cascade="all, delete-orphan"
     )
 
@@ -75,5 +75,5 @@ class BillIssue(Base):
     )
 
     # Relationships
-    bill_service: Mapped["BillService"] = relationship("BillService", back_populates="issues")
-    expense: Mapped["Expense | None"] = relationship("Expense")
+    bill_service: Mapped[BillService] = relationship("BillService", back_populates="issues")
+    expense: Mapped[Expense | None] = relationship("Expense")

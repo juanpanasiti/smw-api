@@ -48,8 +48,8 @@ class Account(Base):
     }
 
     # Relationships
-    owner: Mapped["User"] = relationship("User", back_populates="accounts")
-    expenses: Mapped[list["Expense"]] = relationship("Expense", back_populates="account", cascade="all, delete-orphan")
+    owner: Mapped[User] = relationship("User", back_populates="accounts")
+    expenses: Mapped[list[Expense]] = relationship("Expense", back_populates="account", cascade="all, delete-orphan")
 
 
 class CreditCard(Account):
@@ -75,12 +75,12 @@ class CreditCard(Account):
     }
 
     # Self-referential: card extensions — remote_side points to the "one" side (parent)
-    extensions: Mapped[list["CreditCard"]] = relationship(
+    extensions: Mapped[list[CreditCard]] = relationship(
         "CreditCard",
         foreign_keys=[main_credit_card_id],
         back_populates="main_card",
     )
-    main_card: Mapped["CreditCard | None"] = relationship(
+    main_card: Mapped[CreditCard | None] = relationship(
         "CreditCard",
         foreign_keys=[main_credit_card_id],
         back_populates="extensions",

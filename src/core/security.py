@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import bcrypt
+from jose import jwt
 
 # You should ideally read these from settings in a real environment
 SECRET_KEY = "dummy-secret-key-for-development"
@@ -24,8 +25,6 @@ def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password_bytes, salt).decode('utf-8')
 
-
-from jose import jwt
 
 def create_access_token(subject: str | Any) -> str:
     expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

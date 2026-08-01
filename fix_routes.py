@@ -1,19 +1,20 @@
 import glob
 import re
 
+
 def process_file(filepath):
-    with open(filepath, 'r') as f:
+    with open(filepath) as f:
         lines = f.readlines()
-    
+
     modified = False
     in_def = False
     for i in range(len(lines)):
         line = lines[i]
-        
+
         # Start of function def
         if re.match(r'^\s*(async\s+)?def\s+[a-zA-Z0-9_]+\(', line):
             in_def = True
-            
+
         if in_def:
             # Check if this line closes the def
             # It ends with "):" possibly with some trailing whitespace
@@ -24,7 +25,7 @@ def process_file(filepath):
             elif re.search(r'\)\s*->', line):
                 # already has a return type
                 in_def = False
-                
+
     content = ''.join(lines)
     if modified:
         if 'from typing import ' in content and 'Any' not in content:
@@ -36,5 +37,5 @@ def process_file(filepath):
 
 for filepath in glob.glob('src/routes/*.py'):
     process_file(filepath)
-    
+
 print("Fixed routes")

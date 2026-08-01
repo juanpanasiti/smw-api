@@ -1,4 +1,5 @@
 import uuid
+from typing import TypeVar
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,8 +7,6 @@ from sqlalchemy.orm import selectin_polymorphic
 
 from src.models.expense import Expense, Payment, Purchase, Subscription
 
-
-from typing import TypeVar
 T = TypeVar("T", bound=Expense)
 
 class ExpenseRepository:

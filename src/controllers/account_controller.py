@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 import structlog
 
@@ -22,8 +23,6 @@ _ERROR_MAP = {
     "PARENT_CARD_NOT_FOUND_OR_FORBIDDEN": (400, "Parent credit card not found or access denied."),
 }
 
-
-from typing import Any
 
 def _make_error_response(code: str) -> tuple[StandardResponse[Any], int]:
     http_status, message = _ERROR_MAP.get(code, (400, "An error occurred."))

@@ -1,7 +1,6 @@
-from typing import Any
 import uuid
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Path, Query, status
 

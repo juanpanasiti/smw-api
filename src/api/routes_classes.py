@@ -1,6 +1,6 @@
 import json
-from collections.abc import Callable
-from typing import Any, Coroutine
+from collections.abc import Callable, Coroutine
+from typing import Any
 
 import structlog
 from fastapi import Request, Response

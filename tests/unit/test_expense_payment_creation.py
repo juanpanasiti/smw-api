@@ -216,7 +216,7 @@ async def test_create_expense_payment_does_not_update_amount_when_posterior_exis
     schema = SubscriptionPaymentCreateSchema(
         amount=Decimal("14.99"),
         no_installment=5,
-        period_month=5,   # older period
+        period_month=5,  # older period
         period_year=2026,
     )
 

@@ -38,9 +38,7 @@ async def test_delete_service_with_issues_no_force(client: AsyncClient, auth_hea
     assert service_id in remaining_service_ids
 
     # The issue must still exist
-    issues_res = await client.get(
-        "/api/v1/bills/issues", params={"period": "2027-02"}, headers=auth_headers
-    )
+    issues_res = await client.get("/api/v1/bills/issues", params={"period": "2027-02"}, headers=auth_headers)
     assert issues_res.status_code == 200
     remaining_issue_ids = [i["id"] for i in issues_res.json()["data"]]
     assert issue_id in remaining_issue_ids

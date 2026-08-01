@@ -86,9 +86,7 @@ class BillController:
         logger.info("bill_issue_deleted", user_id=str(user_id), issue_id=str(issue_id))
         return StandardResponse(success=True)
 
-    async def delete_service(
-        self, user_id: uuid.UUID, service_id: uuid.UUID, force: bool
-    ) -> StandardResponse[None]:
+    async def delete_service(self, user_id: uuid.UUID, service_id: uuid.UUID, force: bool) -> StandardResponse[None]:
         try:
             await self.bill_service.delete_service(user_id, service_id, force=force)
             await invalidate_user_projections(user_id)

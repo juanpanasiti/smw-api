@@ -25,9 +25,12 @@ async def test_delete_service_force_fail_rollback(client: AsyncClient, auth_head
     async def _raise_on_delete(self, service):  # noqa: ANN001, ARG001
         raise RuntimeError("Simulated database failure during delete_service")
 
-    with pytest.raises(RuntimeError, match="Simulated database failure during delete_service"), patch(
-        "src.repositories.bill_repository.BillRepository.delete_service",
-        new=_raise_on_delete,
+    with (
+        pytest.raises(RuntimeError, match="Simulated database failure during delete_service"),
+        patch(
+            "src.repositories.bill_repository.BillRepository.delete_service",
+            new=_raise_on_delete,
+        ),
     ):
         await client.delete(
             f"/api/v1/bills/services/{service_id}",
@@ -42,9 +45,7 @@ async def test_delete_service_force_fail_rollback(client: AsyncClient, auth_head
     assert service_id in remaining_service_ids, "Service must still exist after failed force-delete"
 
     # The issue must also still exist — the transaction was never committed.
-    issues_res = await client.get(
-        "/api/v1/bills/issues", params={"period": "2027-05"}, headers=auth_headers
-    )
+    issues_res = await client.get("/api/v1/bills/issues", params={"period": "2027-05"}, headers=auth_headers)
     assert issues_res.status_code == 200
     remaining_issue_ids = [i["id"] for i in issues_res.json()["data"]]
     assert issue_id in remaining_issue_ids, "Issue must still exist after failed force-delete"

@@ -86,11 +86,7 @@ class ExpenseRepository:
 
     async def get_payments_by_expense_id(self, expense_id: uuid.UUID) -> list[Payment]:
         """Return all payments for an expense ordered by no_installment ascending."""
-        stmt = (
-            select(Payment)
-            .where(Payment.expense_id == expense_id)
-            .order_by(Payment.no_installment)
-        )
+        stmt = select(Payment).where(Payment.expense_id == expense_id).order_by(Payment.no_installment)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 

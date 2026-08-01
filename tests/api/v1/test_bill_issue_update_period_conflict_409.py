@@ -26,9 +26,7 @@ async def test_bill_issue_update_period_conflict_returns_409(client: AsyncClient
     issue_id = await create_bill_issue(
         client, auth_headers, service_id, period="2026-01", amount="100.00", due_date="2026-01-15"
     )
-    await create_bill_issue(
-        client, auth_headers, service_id, period="2026-02", amount="100.00", due_date="2026-02-15"
-    )
+    await create_bill_issue(client, auth_headers, service_id, period="2026-02", amount="100.00", due_date="2026-02-15")
 
     # Attempt to move issue_id to 2026-02, which is already taken
     res = await client.patch(

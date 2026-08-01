@@ -112,9 +112,7 @@ async def test_delete_issue_other_user(bill_service: BillServiceManager, mock_bi
 
 
 @pytest.mark.asyncio
-async def test_delete_service_no_issues_success(
-    bill_service: BillServiceManager, mock_bill_repo: AsyncMock
-) -> None:
+async def test_delete_service_no_issues_success(bill_service: BillServiceManager, mock_bill_repo: AsyncMock) -> None:
     """
     Delete a service that has no associated issues.
 
@@ -134,9 +132,7 @@ async def test_delete_service_no_issues_success(
 
 
 @pytest.mark.asyncio
-async def test_delete_service_with_issues_no_force(
-    bill_service: BillServiceManager, mock_bill_repo: AsyncMock
-) -> None:
+async def test_delete_service_with_issues_no_force(bill_service: BillServiceManager, mock_bill_repo: AsyncMock) -> None:
     """
     Attempt to delete a service that has issues without force=True.
 
@@ -159,9 +155,7 @@ async def test_delete_service_with_issues_no_force(
 
 
 @pytest.mark.asyncio
-async def test_delete_service_with_issues_force(
-    bill_service: BillServiceManager, mock_bill_repo: AsyncMock
-) -> None:
+async def test_delete_service_with_issues_force(bill_service: BillServiceManager, mock_bill_repo: AsyncMock) -> None:
     """
     Delete a service with issues using force=True.
 
@@ -183,9 +177,7 @@ async def test_delete_service_with_issues_force(
 
 
 @pytest.mark.asyncio
-async def test_delete_service_not_found(
-    bill_service: BillServiceManager, mock_bill_repo: AsyncMock
-) -> None:
+async def test_delete_service_not_found(bill_service: BillServiceManager, mock_bill_repo: AsyncMock) -> None:
     """
     Attempt to delete a service that does not exist.
 

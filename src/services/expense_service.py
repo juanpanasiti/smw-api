@@ -98,9 +98,7 @@ class ExpenseService:
         # We don't generate physical payments upfront for subscriptions.
         return await self.expense_repository.create(subscription)
 
-    async def update_payment(
-        self, user_id: uuid.UUID, payment_id: uuid.UUID, data: PaymentUpdateSchema
-    ) -> Payment:
+    async def update_payment(self, user_id: uuid.UUID, payment_id: uuid.UUID, data: PaymentUpdateSchema) -> Payment:
         """
         Update one or more fields of a payment.
 
@@ -144,7 +142,11 @@ class ExpenseService:
             new_amount = data.amount
 
             locked_sum: Decimal = sum(
-                (Decimal(str(p.amount)) for p in all_payments if p.id != payment_id and p.status in LOCKED_PAYMENT_STATUSES),
+                (
+                    Decimal(str(p.amount))
+                    for p in all_payments
+                    if p.id != payment_id and p.status in LOCKED_PAYMENT_STATUSES
+                ),
                 Decimal("0.00"),
             )
 
@@ -165,10 +167,7 @@ class ExpenseService:
                     },
                 )
 
-            redistributable = [
-                p for p in all_payments
-                if p.id != payment_id and p.status == "unconfirmed"
-            ]
+            redistributable = [p for p in all_payments if p.id != payment_id and p.status == "unconfirmed"]
 
             if not redistributable and remaining_budget != Decimal("0.00"):
                 raise HTTPException(
@@ -326,5 +325,3 @@ class ExpenseService:
 
         await self._verify_account_ownership(user_id, expense.account_id)
         await self.expense_repository.delete(expense)
-
-

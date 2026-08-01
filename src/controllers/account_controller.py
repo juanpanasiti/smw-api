@@ -42,7 +42,9 @@ class AccountController:
                 data.append(AccountResponseSchema.model_validate(acc))
         return StandardResponse(success=True, data=data)
 
-    async def get_account(self, owner_id: uuid.UUID, account_id: uuid.UUID) -> tuple[StandardResponse[AccountListItemSchema], int]:
+    async def get_account(
+        self, owner_id: uuid.UUID, account_id: uuid.UUID
+    ) -> tuple[StandardResponse[AccountListItemSchema], int]:
         try:
             account = await self.account_service.get_account(owner_id, account_id)
             if isinstance(account, CreditCard):

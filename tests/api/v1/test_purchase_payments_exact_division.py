@@ -57,9 +57,7 @@ async def test_purchase_payments_sum_equals_total_exact_division(
     assert len(payments) == total_installments
 
     payments_total = sum(p.amount for p in payments)
-    assert payments_total == total_amount, (
-        f"Expected payments to sum to {total_amount}, got {payments_total}"
-    )
+    assert payments_total == total_amount, f"Expected payments to sum to {total_amount}, got {payments_total}"
 
     unconfirmed = [p for p in payments if p.status != "unconfirmed"]
     assert not unconfirmed, (
